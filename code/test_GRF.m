@@ -1,9 +1,16 @@
 % Imput from user ---------------------------------------------------------
 
 % Path to data
-path = '../data/117/2017-12-06_Jumps_5cm_1_m1_117.txt';
-% Subject's body mass (kg)
-body_mass = 51.4;
+[file, path] = uigetfile('*.txt');
+path_to_file = join([path, file]);
+% Ask user input for body mass
+prompt = {'Enter subject body mass (in kg)'};
+dlgtitle = 'ontsize{15} Body mass';
+definput = {'70'};
+opts.Interpreter = 'tex';
+opts.Resize = 'on';
+answer = inputdlg(prompt, dlgtitle, [1 50], definput, opts);
+body_mass = str2num(answer{1});
 % Sample frequency (Hz)
 samp_freq = 1000;
 % Minimum time to consider an interval (s)
@@ -11,7 +18,7 @@ threshold = 5 * samp_freq;
 
 % -------------------------------------------------------------------------
 
-data = dlmread(path);
+data = dlmread(path_to_file);
 
 % Retrieve data from platform 1
 % Ground reaction force (GRF; N)
