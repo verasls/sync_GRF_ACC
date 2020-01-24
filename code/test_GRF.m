@@ -1,3 +1,7 @@
+clear
+clc
+close all
+
 % Imput from user ---------------------------------------------------------
 
 % Path to data
