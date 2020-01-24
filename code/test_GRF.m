@@ -3,10 +3,16 @@
 % Path to data
 [file, path] = uigetfile('*.txt');
 path_to_file = join([path, file]);
+% Get Subject's body mass (kg)
+ID = str2num(file(end - 6:end - 4));
+trial = str2num(file(end - 8:end - 8));
+body_mass_data = dlmread('../data/body_mass.txt', ',', 1, 0);
+ID_row = find(body_mass_data(:, 1) == ID);
+body_mass = round(body_mass_data(ID_row, 3), 2);
 % Ask user input for body mass
 prompt = {'Enter subject body mass (in kg)'};
 dlgtitle = 'Body mass';
-definput = {'70'};
+definput = {num2str(body_mass)};
 opts.Interpreter = 'tex';
 opts.Resize = 'on';
 answer = inputdlg(prompt, dlgtitle, [1 50], definput, opts);
