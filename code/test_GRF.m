@@ -5,7 +5,7 @@
 path_to_file = join([path, file]);
 % Ask user input for body mass
 prompt = {'Enter subject body mass (in kg)'};
-dlgtitle = 'ontsize{15} Body mass';
+dlgtitle = 'Body mass';
 definput = {'70'};
 opts.Interpreter = 'tex';
 opts.Resize = 'on';
