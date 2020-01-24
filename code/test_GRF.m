@@ -59,7 +59,7 @@ height_fZ = 3 * mean(fZ); % Vertical GRF (N)
 height_fR = 3 * mean(fR); % Resultant GRF (N)
 height_fZ_BW = 3 * mean(fZ_BW); % Vertical GRF (BW)
 height_fR_BW = 3 * mean(fR_BW); % Resultant GRF (BW)
-h_dist = 0.4 * samp_freq;  % seconds * sampling frequency
+h_dist = 0.2 * samp_freq;  % seconds * sampling frequency
 
 % Peak GRF (N)
 [pks_fZ, locs_fZ] = findpeaks(fZ, 'MINPEAKHEIGHT', height_fZ, 'MINPEAKDISTANCE', h_dist);
