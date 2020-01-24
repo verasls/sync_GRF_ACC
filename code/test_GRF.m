@@ -1,9 +1,9 @@
 % Imput from user ---------------------------------------------------------
 
 % Path to data
-path = '../data/119/2017-12-09_Jumps_5cm_1_m1_119.txt';
+path = '../data/117/2017-12-06_Jumps_5cm_1_m1_117.txt';
 % Subject's body mass (kg)
-body_mass = 71.25;
+body_mass = 51.4;
 % Sample frequency (Hz)
 samp_freq = 1000;
 % Minimum time to consider an interval (s)
@@ -76,9 +76,9 @@ h12 = plot(time_of_peaks_fZ, pks_fZ, 'x', 'MarkerSize', 10);
 xlabel('Time (s)', 'FontSize', 20)
 ylabel('Vertical ground reaction force (N)', 'FontSize', 20)
 xticks(0:5:max(time));
-yticks(0:500:3500);
+yticks(0:500:(ceil(max(fZ) / 500) * 500));
 xlim([0 max(time)]);
-ylim([0 3500]);
+ylim([0 (ceil(max(fZ) / 500) * 500)]);
 ax = gca;
 ax.FontSize = 16;
 
@@ -92,9 +92,9 @@ h22 = plot(time_of_peaks_fZ_BW, pks_fZ_BW, 'x', 'MarkerSize', 10);
 xlabel('Time (s)', 'FontSize', 20)
 ylabel('Vertical ground reaction force (BW)', 'FontSize', 20)
 xticks(0:5:max(time));
-yticks(0:0.5:5);
+yticks(0:0.5:ceil(max(fZ_BW)));
 xlim([0 max(time)]);
-ylim([0 5]);
+ylim([0 ceil(max(fZ_BW))]);
 ax = gca;
 ax.FontSize = 16;
 
@@ -108,9 +108,9 @@ h12 = plot(time_of_peaks_fR, pks_fR, 'x', 'MarkerSize', 10);
 xlabel('Time (s)', 'FontSize', 20)
 ylabel('Resultant ground reaction force (N)', 'FontSize', 20)
 xticks(0:5:max(time));
-yticks(0:500:3500);
+yticks(0:500:(ceil(max(fR) / 500) * 500));
 xlim([0 max(time)]);
-ylim([0 3500]);
+ylim([0 (ceil(max(fR) / 500) * 500)]);
 ax = gca;
 ax.FontSize = 16;
 
@@ -124,8 +124,8 @@ h12 = plot(time_of_peaks_fR_BW, pks_fR_BW, 'x', 'MarkerSize', 10);
 xlabel('Time (s)', 'FontSize', 20)
 ylabel('Resultant ground reaction force (BW)', 'FontSize', 20)
 xticks(0:5:max(time));
-yticks(0:0.5:5);
+yticks(0:0.5:ceil(max(fR_BW)));
 xlim([0 max(time)]);
-ylim([0 5]);
+ylim([0 ceil(max(fR_BW))]);
 ax = gca;
 ax.FontSize = 16;
