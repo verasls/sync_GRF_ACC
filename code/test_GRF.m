@@ -52,6 +52,7 @@ plot(time_of_peaks, pks, 'x', 'MarkerSize', 10);
 xlabel('Time (s)', 'FontSize', 20)
 ylabel('Vertical ground reaction force (BW)', 'FontSize', 20)
 xticks(0:5:max(time));
-yticks(-1:0.5:6);
+yticks(0:0.5:6);
+ylim([0 5]);
 ax = gca;
 ax.FontSize = 16;
