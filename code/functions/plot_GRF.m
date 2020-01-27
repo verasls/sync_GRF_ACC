@@ -1,6 +1,8 @@
 function plot_GRF(platform, vector, GRF_unit, time, GRF, time_pks, pks)
 % plot_GRF plots the GRF signal x time and marks the peaks on the plot
 %
+% platform should be an interger, either 1 or 2
+%
 % vector should be a character string, either 'vertical' or 'resultant'
 %
 % GRF_unit should be a character string, eigther 'N' or 'BW'
