@@ -71,27 +71,34 @@ fR2 = sqrt(fX2.^2 + fY2.^2 + fZ2.^2); % Compute resultant vector
 [pks_fZ1, time_pks_fZ1] = find_signal_peaks(3, 0.2, samp_freq, fZ1);
 [pks_fR1, time_pks_fR1] = find_signal_peaks(3, 0.2, samp_freq, fR1);
 
-[pks_fZ2, time_pks_fZ2] = find_signal_peaks(3, 0.2, samp_freq, fZ2);
-[pks_fR2, time_pks_fR2] = find_signal_peaks(3, 0.2, samp_freq, fR2);
+[pks_fZ2, time_pks_fZ2] = find_signal_peaks(1, 0.2, samp_freq, fZ2);
+[pks_fR2, time_pks_fR2] = find_signal_peaks(1, 0.2, samp_freq, fR2);
 
 % Find peak GRF (BW)
 [pks_fZ1_BW, time_pks_fZ1_BW] = find_signal_peaks(3, 0.2, samp_freq, fZ1_BW);
 [pks_fR1_BW, time_pks_fR1_BW] = find_signal_peaks(3, 0.2, samp_freq, fR1_BW);
 
-[pks_fZ2_BW, time_pks_fZ2_BW] = find_signal_peaks(3, 0.2, samp_freq, fZ2_BW);
-[pks_fR2_BW, time_pks_fR2_BW] = find_signal_peaks(3, 0.2, samp_freq, fR2_BW);
+[pks_fZ2_BW, time_pks_fZ2_BW] = find_signal_peaks(1, 0.2, samp_freq, fZ2_BW);
+[pks_fR2_BW, time_pks_fR2_BW] = find_signal_peaks(1, 0.2, samp_freq, fR2_BW);
 
-
+% Plot platform 1 data
 % Plot Vertical GRF (N) x Time (s)
 plot_GRF(1, 'vertical', 'N', time, fZ1, time_pks_fZ1, pks_fZ1)
-
 % Plot Vertical GRF (BW) x Time (s)
 plot_GRF(1, 'vertical', 'BW', time, fZ1_BW, time_pks_fZ1_BW, pks_fZ1_BW)
-
 % Plot Resultant GRF (N) x Time (s)
 plot_GRF(1, 'resultant', 'N', time, fR1, time_pks_fR1, pks_fR1)
-
 % Plot Resultant GRF (BW) x Time (s)
 plot_GRF(1, 'resultant', 'BW', time, fR1_BW, time_pks_fR1_BW, pks_fR1_BW)
+
+% Plot platform 2 data
+% Plot Vertical GRF (N) x Time (s)
+plot_GRF(2, 'vertical', 'N', time, fZ2, time_pks_fZ2, pks_fZ2)
+% Plot Vertical GRF (BW) x Time (s)
+plot_GRF(2, 'vertical', 'BW', time, fZ2_BW, time_pks_fZ2_BW, pks_fZ2_BW)
+% Plot Resultant GRF (N) x Time (s)
+plot_GRF(2, 'resultant', 'N', time, fR2, time_pks_fR2, pks_fR2)
+% Plot Resultant GRF (BW) x Time (s)
+plot_GRF(2, 'resultant', 'BW', time, fR2_BW, time_pks_fR2_BW, pks_fR2_BW)
 
 rmpath(added_path);
