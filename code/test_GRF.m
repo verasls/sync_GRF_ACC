@@ -52,27 +52,12 @@ fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
 										get_GRF_BW(body_mass, fZ1), ...
 										get_GRF_BW(body_mass, fR1));
 
-% Find peaks
-height_fZ1 = 3 * mean(fZ1); % Vertical GRF (N)
-height_fR1 = 3 * mean(fR1); % Resultant GRF (N)
-height_fZ1_BW = 3 * mean(fZ1_BW); % Vertical GRF (BW)
-height_fR1_BW = 3 * mean(fR1_BW); % Resultant GRF (BW)
-h_dist = 0.2 * samp_freq;  % Seconds * sampling frequency
-
-% Peak GRF (N)
-[pks_fZ1, locs_fZ1] = findpeaks(fZ1, 'MINPEAKHEIGHT', height_fZ1, ...
-								'MINPEAKDISTANCE', h_dist);
-[pks_fR1, locs_fR1] = findpeaks(fR1, 'MINPEAKHEIGHT', height_fR1, ...
-								'MINPEAKDISTANCE', h_dist);
-time_of_peaks_fZ1 = locs_fZ1 / samp_freq;
-time_of_peaks_fR1 = locs_fR1 / samp_freq;
-% Peak GRF (BW)
-[pks_fZ1_BW, locs_fZ1_BW] = findpeaks(fZ1_BW, 'MINPEAKHEIGHT', height_fZ1_BW, ...
-									  'MINPEAKDISTANCE', h_dist);
-[pks_fR1_BW, locs_fR1_BW] = findpeaks(fR1_BW, 'MINPEAKHEIGHT', height_fR1_BW, ...
-									  'MINPEAKDISTANCE', h_dist);
-time_of_peaks_fZ1_BW = locs_fZ1_BW / samp_freq;
-time_of_peaks_fR1_BW = locs_fR1_BW / samp_freq;
+% Find peak GRF (N)
+[pks_fZ1, time_of_peaks_fZ1] = find_signal_peaks(3, 0.2, samp_freq, fZ1);
+[pks_fR1, time_of_peaks_fR1] = find_signal_peaks(3, 0.2, samp_freq, fR1);
+% Find peak GRF (BW)
+[pks_fZ1_BW, time_of_peaks_fZ1_BW] = find_signal_peaks(3, 0.2, samp_freq, fZ1_BW);
+[pks_fR1_BW, time_of_peaks_fR1_BW] = find_signal_peaks(3, 0.2, samp_freq, fR1_BW);
 
 
 % Plot Vertical GRF (N) x Time (s)
