@@ -1,4 +1,4 @@
-function plot_GRF(vector, GRF_unit, time, GRF, time_pks, pks)
+function plot_GRF(platform, vector, GRF_unit, time, GRF, time_pks, pks)
 % plot_GRF plots the GRF signal x time and marks the peaks on the plot
 %
 % vector should be a character string, either 'vertical' or 'resultant'
@@ -14,17 +14,21 @@ function plot_GRF(vector, GRF_unit, time, GRF, time_pks, pks)
 %
 % pks should be an array with the magnitude of the peaks
 
-	if strcmpi(vector, 'vertical') & strcmpi(GRF_unit, 'N')
+	if strcmp(vector, 'vertical') & strcmp(GRF_unit, 'N')
 		label = 'Vertical ground reaction force (N)';
-	elseif strcmpi(vector, 'vertical') & strcmpi(GRF_unit, 'BW')
+	elseif strcmp(vector, 'vertical') & strcmp(GRF_unit, 'BW')
 		label = 'Vertical ground reaction force (BW)';
-	elseif strcmpi(vector, 'resultant') & strcmpi(GRF_unit, 'N')
+	elseif strcmp(vector, 'resultant') & strcmp(GRF_unit, 'N')
 		label = 'Resultant ground reaction force (N)';
-	elseif strcmpi(vector, 'resultant') & strcmpi(GRF_unit, 'BW')
+	elseif strcmp(vector, 'resultant') & strcmp(GRF_unit, 'BW')
 		label = 'Resultant ground reaction force (BW)';
 	end
 
-	figname = join([label, ' x Time (s)']);
+	if platform == 1
+		figname = join([label, ' x Time (s) - Platform 1']);
+	elseif platform == 2
+		figname = join([label, ' x Time (s) - Platform 2']);
+	end
 
 	if strcmpi(GRF_unit, 'N')
 		max_GRF = (ceil(max(GRF) / 500) * 500);
