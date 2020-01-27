@@ -40,11 +40,21 @@ time = time / samp_freq;  % Time in seconds
 [fX1, fY1, fZ1] = deal(data(:, 1), data(:, 2), data(:, 3));
 fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
 
+% Get data from platform 2
+% Ground reaction force (N)
+[fX2, fY2, fZ2] = deal(data(:, 7), data(:, 8), data(:, 9));
+fR2 = sqrt(fX2.^2 + fY2.^2 + fZ2.^2); % Compute resultant vector
+
 % Filter GRF data
 [fX1, fY1, fZ1, fR1] = deal(filter_signal(samp_freq, fX1),...
 							filter_signal(samp_freq, fY1),...
 							filter_signal(samp_freq, fZ1),...
 							filter_signal(samp_freq, fR1));
+
+[fX2, fY2, fZ2, fR2] = deal(filter_signal(samp_freq, fX2),...
+							filter_signal(samp_freq, fY2),...
+							filter_signal(samp_freq, fZ2),...
+							filter_signal(samp_freq, fR2));
 
 % Get GRF in body weights (BW)
 [fX1_BW, fY1_BW, fZ1_BW, fR1_BW] = deal(get_GRF_BW(body_mass, fX1), ...
@@ -52,12 +62,24 @@ fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
 										get_GRF_BW(body_mass, fZ1), ...
 										get_GRF_BW(body_mass, fR1));
 
+[fX2_BW, fY2_BW, fZ2_BW, fR2_BW] = deal(get_GRF_BW(body_mass, fX2), ...
+										get_GRF_BW(body_mass, fY2), ...
+										get_GRF_BW(body_mass, fZ2), ...
+										get_GRF_BW(body_mass, fR2));
+
 % Find peak GRF (N)
 [pks_fZ1, time_pks_fZ1] = find_signal_peaks(3, 0.2, samp_freq, fZ1);
 [pks_fR1, time_pks_fR1] = find_signal_peaks(3, 0.2, samp_freq, fR1);
+
+[pks_fZ2, time_pks_fZ2] = find_signal_peaks(3, 0.2, samp_freq, fZ2);
+[pks_fR2, time_pks_fR2] = find_signal_peaks(3, 0.2, samp_freq, fR2);
+
 % Find peak GRF (BW)
 [pks_fZ1_BW, time_pks_fZ1_BW] = find_signal_peaks(3, 0.2, samp_freq, fZ1_BW);
 [pks_fR1_BW, time_pks_fR1_BW] = find_signal_peaks(3, 0.2, samp_freq, fR1_BW);
+
+[pks_fZ2_BW, time_pks_fZ2_BW] = find_signal_peaks(3, 0.2, samp_freq, fZ2_BW);
+[pks_fR2_BW, time_pks_fR2_BW] = find_signal_peaks(3, 0.2, samp_freq, fR2_BW);
 
 
 % Plot Vertical GRF (N) x Time (s)
