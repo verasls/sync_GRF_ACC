@@ -53,75 +53,23 @@ fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
 										get_GRF_BW(body_mass, fR1));
 
 % Find peak GRF (N)
-[pks_fZ1, time_of_peaks_fZ1] = find_signal_peaks(3, 0.2, samp_freq, fZ1);
-[pks_fR1, time_of_peaks_fR1] = find_signal_peaks(3, 0.2, samp_freq, fR1);
+[pks_fZ1, time_pks_fZ1] = find_signal_peaks(3, 0.2, samp_freq, fZ1);
+[pks_fR1, time_pks_fR1] = find_signal_peaks(3, 0.2, samp_freq, fR1);
 % Find peak GRF (BW)
-[pks_fZ1_BW, time_of_peaks_fZ1_BW] = find_signal_peaks(3, 0.2, samp_freq, fZ1_BW);
-[pks_fR1_BW, time_of_peaks_fR1_BW] = find_signal_peaks(3, 0.2, samp_freq, fR1_BW);
+[pks_fZ1_BW, time_pks_fZ1_BW] = find_signal_peaks(3, 0.2, samp_freq, fZ1_BW);
+[pks_fR1_BW, time_pks_fR1_BW] = find_signal_peaks(3, 0.2, samp_freq, fR1_BW);
 
 
 % Plot Vertical GRF (N) x Time (s)
-figure('NAME', 'Vertical GRF (N) x Time (s)')
-set(gcf, 'Position', get(0, 'Screensize'));
-h11 = plot(time, fZ1);
-grid on
-hold on
-h12 = plot(time_of_peaks_fZ1, pks_fZ1, 'x', 'MarkerSize', 10);
-xlabel('Time (s)', 'FontSize', 20)
-ylabel('Vertical ground reaction force (N)', 'FontSize', 20)
-xticks(0:5:max(time));
-yticks(0:500:(ceil(max(fZ1) / 500) * 500));
-xlim([0 max(time)]);
-ylim([0 (ceil(max(fZ1) / 500) * 500)]);
-ax = gca;
-ax.FontSize = 16;
+plot_GRF('vertical', 'N', time, fZ1, time_pks_fZ1, pks_fZ1)
 
 % Plot Vertical GRF (BW) x Time (s)
-figure('NAME', 'Vertical GRF (BW) x Time (s)')
-set(gcf, 'Position', get(0, 'Screensize'));
-h21 = plot(time, fZ1_BW);
-grid on
-hold on
-h22 = plot(time_of_peaks_fZ1_BW, pks_fZ1_BW, 'x', 'MarkerSize', 10);
-xlabel('Time (s)', 'FontSize', 20)
-ylabel('Vertical ground reaction force (BW)', 'FontSize', 20)
-xticks(0:5:max(time));
-yticks(0:0.5:ceil(max(fZ1_BW)));
-xlim([0 max(time)]);
-ylim([0 ceil(max(fZ1_BW))]);
-ax = gca;
-ax.FontSize = 16;
+plot_GRF('vertical', 'BW', time, fZ1_BW, time_pks_fZ1_BW, pks_fZ1_BW)
 
 % Plot Resultant GRF (N) x Time (s)
-figure('NAME', 'Resultant GRF (N) x Time (s)')
-set(gcf, 'Position', get(0, 'Screensize'));
-h11 = plot(time, fR1);
-grid on
-hold on
-h12 = plot(time_of_peaks_fR1, pks_fR1, 'x', 'MarkerSize', 10);
-xlabel('Time (s)', 'FontSize', 20)
-ylabel('Resultant ground reaction force (N)', 'FontSize', 20)
-xticks(0:5:max(time));
-yticks(0:500:(ceil(max(fR1) / 500) * 500));
-xlim([0 max(time)]);
-ylim([0 (ceil(max(fR1) / 500) * 500)]);
-ax = gca;
-ax.FontSize = 16;
+plot_GRF('resultant', 'N', time, fR1, time_pks_fR1, pks_fR1)
 
 % Plot Resultant GRF (BW) x Time (s)
-figure('NAME', 'Resultant GRF (BW) x Time (s)')
-set(gcf, 'Position', get(0, 'Screensize'));
-h11 = plot(time, fR1_BW);
-grid on
-hold on
-h12 = plot(time_of_peaks_fR1_BW, pks_fR1_BW, 'x', 'MarkerSize', 10);
-xlabel('Time (s)', 'FontSize', 20)
-ylabel('Resultant ground reaction force (BW)', 'FontSize', 20)
-xticks(0:5:max(time));
-yticks(0:0.5:ceil(max(fR1_BW)));
-xlim([0 max(time)]);
-ylim([0 ceil(max(fR1_BW))]);
-ax = gca;
-ax.FontSize = 16;
+plot_GRF('resultant', 'BW', time, fR1_BW, time_pks_fR1_BW, pks_fR1_BW)
 
 rmpath(added_path);
