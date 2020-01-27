@@ -33,12 +33,12 @@ data = dlmread(path_to_file);
 % Retrieve data from platform 1
 % Ground reaction force (GRF; N)
 [fX1, fY1, fZ1] = deal(data(:, 1), data(:, 2), data(:, 3));
-fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % compute resultant vector
+fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
 time = 1:length(data);
-time = time / samp_freq;  % time in seconds
+time = time / samp_freq;  % Time in seconds
 % Get GRF in BW
-g = 9.81;  % gravity acceleration (m/s2)
-body_weight = body_mass * g;  % body weight (BW; N)
+g = 9.81;  % Gravity acceleration (m/s2)
+body_weight = body_mass * g;  % Body weight (BW; N)
 fX1_BW = fX1 / body_weight;
 fY1_BW = fY1 / body_weight;
 fZ1_BW = fZ1 / body_weight;
@@ -47,7 +47,7 @@ fR1_BW = fR1 / body_weight;
 % Filter GRF data
 % Create the lowpass filter
 n = 4;  % Filter order
-cutoff = 20;  % cut-off frequency (Hz)
+cutoff = 20;  % Cut-off frequency (Hz)
 fnyq = samp_freq / 2;  % Nyquist frequency (half of the sampling frequency)
 Wn = cutoff / fnyq;  % Filter parameter
 
@@ -69,16 +69,20 @@ height_fZ1 = 3 * mean(fZ1); % Vertical GRF (N)
 height_fR1 = 3 * mean(fR1); % Resultant GRF (N)
 height_fZ1_BW = 3 * mean(fZ1_BW); % Vertical GRF (BW)
 height_fR1_BW = 3 * mean(fR1_BW); % Resultant GRF (BW)
-h_dist = 0.2 * samp_freq;  % seconds * sampling frequency
+h_dist = 0.2 * samp_freq;  % Seconds * sampling frequency
 
 % Peak GRF (N)
-[pks_fZ1, locs_fZ1] = findpeaks(fZ1, 'MINPEAKHEIGHT', height_fZ1, 'MINPEAKDISTANCE', h_dist);
-[pks_fR1, locs_fR1] = findpeaks(fR1, 'MINPEAKHEIGHT', height_fR1, 'MINPEAKDISTANCE', h_dist);
+[pks_fZ1, locs_fZ1] = findpeaks(fZ1, 'MINPEAKHEIGHT', height_fZ1, ...
+								'MINPEAKDISTANCE', h_dist);
+[pks_fR1, locs_fR1] = findpeaks(fR1, 'MINPEAKHEIGHT', height_fR1, ...
+								'MINPEAKDISTANCE', h_dist);
 time_of_peaks_fZ1 = locs_fZ1 / samp_freq;
 time_of_peaks_fR1 = locs_fR1 / samp_freq;
 % Peak GRF (BW)
-[pks_fZ1_BW, locs_fZ1_BW] = findpeaks(fZ1_BW, 'MINPEAKHEIGHT', height_fZ1_BW, 'MINPEAKDISTANCE', h_dist);
-[pks_fR1_BW, locs_fR1_BW] = findpeaks(fR1_BW, 'MINPEAKHEIGHT', height_fR1_BW, 'MINPEAKDISTANCE', h_dist);
+[pks_fZ1_BW, locs_fZ1_BW] = findpeaks(fZ1_BW, 'MINPEAKHEIGHT', height_fZ1_BW, ...
+									  'MINPEAKDISTANCE', h_dist);
+[pks_fR1_BW, locs_fR1_BW] = findpeaks(fR1_BW, 'MINPEAKHEIGHT', height_fR1_BW, ...
+									  'MINPEAKDISTANCE', h_dist);
 time_of_peaks_fZ1_BW = locs_fZ1_BW / samp_freq;
 time_of_peaks_fR1_BW = locs_fR1_BW / samp_freq;
 
