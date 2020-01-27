@@ -35,35 +35,22 @@ data = dlmread(path_to_file);
 time = 1:length(data);
 time = time / samp_freq;  % Time in seconds
 
-% Retrieve data from platform 1
+% Get data from platform 1
 % Ground reaction force (GRF; N)
 [fX1, fY1, fZ1] = deal(data(:, 1), data(:, 2), data(:, 3));
 fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
+
+% Filter GRF data
+[fX1, fY1, fZ1, fR1] = deal(filter_signal(samp_freq, fX1),...
+							filter_signal(samp_freq, fY1),...
+							filter_signal(samp_freq, fZ1),...
+							filter_signal(samp_freq, fR1));
+
 % Get GRF in body weights (BW)
 [fX1_BW, fY1_BW, fZ1_BW, fR1_BW] = deal(get_GRF_BW(body_mass, fX1), ...
 										get_GRF_BW(body_mass, fY1), ...
 										get_GRF_BW(body_mass, fZ1), ...
 										get_GRF_BW(body_mass, fR1));
-
-% Filter GRF data
-% Create the lowpass filter
-n = 4;  % Filter order
-cutoff = 20;  % Cut-off frequency (Hz)
-fnyq = samp_freq / 2;  % Nyquist frequency (half of the sampling frequency)
-Wn = cutoff / fnyq;  % Filter parameter
-
-[b, a] = butter(n, Wn, 'low');
-
-% Filter GRF (N)
-fX1 = filtfilt(b, a, fX1);
-fY1 = filtfilt(b, a, fY1);
-fZ1 = filtfilt(b, a, fZ1);
-fR1 = filtfilt(b, a, fR1);
-% Filter GRF (BW)
-fX1_BW = filtfilt(b, a, fX1_BW);
-fY1_BW = filtfilt(b, a, fY1_BW);
-fZ1_BW = filtfilt(b, a, fZ1_BW);
-fR1_BW = filtfilt(b, a, fR1_BW);
 
 % Find peaks
 height_fZ1 = 3 * mean(fZ1); % Vertical GRF (N)
