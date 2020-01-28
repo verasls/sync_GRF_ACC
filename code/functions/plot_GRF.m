@@ -32,10 +32,10 @@ function plot_GRF(platform, vector, GRF_unit, time, GRF, time_pks, pks)
 		figname = join([label, ' x Time (s) - Platform 2']);
 	end
 
-	if strcmpi(GRF_unit, 'N')
+	if strcmp(GRF_unit, 'N')
 		max_GRF = (ceil(max(GRF) / 500) * 500);
 		GRF_ticks = 0:500:max_GRF;
-	elseif strcmpi(GRF_unit, 'BW')
+	elseif strcmp(GRF_unit, 'BW')
 		max_GRF = ceil(max(GRF));
 		GRF_ticks = 0:0.5:max_GRF;
 	end
