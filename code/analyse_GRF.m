@@ -7,12 +7,23 @@ addpath(added_path);
 
 % Imput from user ---------------------------------------------------------
 
-% Path to data
-[file, path] = uigetfile('*.txt');
-path_to_file = join([path, file]);
+% Select data directory
+path_to_data = uigetdir('../data')
+path_to_data = join([path_to_data, '/'])
+% Get file names
+files = dir([path_to_data, '*.txt'])
+filenames = {files.name}
+% Separate files per jump type
+drop_jumps_idx = cellfun('isempty', regexp(filenames, '\d_\d*cm'))
+drop_jumps_files = filenames(~drop_jumps_idx)
+box_jumps_idx = cellfun('isempty', regexp(filenames, '_Box_Jumps_'))
+box_jumps_files = filenames(~box_jumps_idx)
+continuous_jumps_idx = cellfun('isempty', regexp(filenames, '\d_Jumps'))
+continuous_jumps_files = filenames(~continuous_jumps_idx)
 % Get Subject's body mass (kg)
-ID = str2num(file(end - 6:end - 4));
-trial = str2num(file(end - 8:end - 8));
+file_ex = filenames{1} % Select a file to obtain the variables below
+ID = str2num(file_ex(end - 6:end - 4));
+trial = str2num(file_ex(end - 8:end - 8));
 body_mass_data = dlmread('../data/body_mass.txt', ',', 1, 0);
 ID_row = find(body_mass_data(:, 1) == ID);
 body_mass = round(body_mass_data(ID_row, 3), 2);
