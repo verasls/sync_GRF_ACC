@@ -52,6 +52,19 @@ samp_freq = 1000;
 
 % -------------------------------------------------------------------------
 
+% Set mininum peak height and distance
+if strcmp(jump_type, 'Drop jumps')
+	min_hei = 3;
+	min_dist = 3;
+elseif strcmp(jump_type, 'Box jumps')
+	min_hei = 3.5;
+	min_dist = 3;
+elseif strcmp(jump_type, 'Continuous jumps')
+	min_hei = 3;
+	min_dist = 0.2;
+end
+
+% Run analyis for all selected files
 for i = 1:size(jump_files, 2)
 	file = join([path_to_data, jump_files{i}]);
 	data = dlmread(file);
@@ -91,18 +104,26 @@ for i = 1:size(jump_files, 2)
 											get_GRF_BW(body_mass, fR2));
 
 	% Find peak GRF (N)
-	[pks_fZ1, time_pks_fZ1] = find_signal_peaks(3, 0.2, samp_freq, fZ1);
-	[pks_fR1, time_pks_fR1] = find_signal_peaks(3, 0.2, samp_freq, fR1);
+	[pks_fZ1, time_pks_fZ1] = find_signal_peaks(min_hei, min_dist, ...
+												samp_freq, fZ1);
+	[pks_fR1, time_pks_fR1] = find_signal_peaks(min_hei, min_dist, ...
+												samp_freq, fR1);
 
-	[pks_fZ2, time_pks_fZ2] = find_signal_peaks(1, 0.2, samp_freq, fZ2);
-	[pks_fR2, time_pks_fR2] = find_signal_peaks(1, 0.2, samp_freq, fR2);
+	[pks_fZ2, time_pks_fZ2] = find_signal_peaks(min_hei, min_dist, ...
+												samp_freq, fZ2);
+	[pks_fR2, time_pks_fR2] = find_signal_peaks(min_hei, min_dist, ...
+												samp_freq, fR2);
 
 	% Find peak GRF (BW)
-	[pks_fZ1_BW, time_pks_fZ1_BW] = find_signal_peaks(3, 0.2, samp_freq, fZ1_BW);
-	[pks_fR1_BW, time_pks_fR1_BW] = find_signal_peaks(3, 0.2, samp_freq, fR1_BW);
+	[pks_fZ1_BW, time_pks_fZ1_BW] = find_signal_peaks(min_hei, min_dist, ...
+													  samp_freq, fZ1_BW);
+	[pks_fR1_BW, time_pks_fR1_BW] = find_signal_peaks(min_hei, min_dist, ...
+													  samp_freq, fR1_BW);
 
-	[pks_fZ2_BW, time_pks_fZ2_BW] = find_signal_peaks(1, 0.2, samp_freq, fZ2_BW);
-	[pks_fR2_BW, time_pks_fR2_BW] = find_signal_peaks(1, 0.2, samp_freq, fR2_BW);
+	[pks_fZ2_BW, time_pks_fZ2_BW] = find_signal_peaks(min_hei, min_dist, ...
+													  samp_freq, fZ2_BW);
+	[pks_fR2_BW, time_pks_fR2_BW] = find_signal_peaks(min_hei, min_dist, ...
+													  samp_freq, fR2_BW);
 
 	% Plot Vertical GRF (N) x Time (s)
 	plot_2_platforms(jump_files{i}, 'vertical', 'N', time, ...
@@ -119,4 +140,5 @@ for i = 1:size(jump_files, 2)
 					 fR1_BW, fR2_BW, time_pks_fR1_BW, time_pks_fR2_BW, ...
 					 pks_fR1_BW, pks_fR2_BW)
 end
+
 rmpath(added_path);
