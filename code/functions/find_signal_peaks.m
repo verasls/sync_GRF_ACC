@@ -20,4 +20,6 @@ function[pks, time_of_pks] = find_signal_peaks(min_hei, min_dist, ...
 							'MINPEAKDISTANCE', min_distance);
 
 	time_of_pks = locs / samp_freq;
+
+	warning('off', 'signal:findpeaks:largeMinPeakHeight')
 end
