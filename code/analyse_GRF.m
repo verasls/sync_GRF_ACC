@@ -37,8 +37,6 @@ answer = inputdlg(prompt, dlgtitle, [1 50], definput, opts);
 body_mass = str2num(answer{1});
 % Sample frequency (Hz)
 samp_freq = 1000;
-% Minimum time to consider an interval (s)
-threshold = 5 * samp_freq;
 
 % -------------------------------------------------------------------------
 
