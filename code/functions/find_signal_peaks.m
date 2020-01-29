@@ -1,5 +1,5 @@
 function[pks, time_of_pks] = find_signal_peaks(min_hei, min_dist, ...
-											   samp_freq, signal)
+	samp_freq, signal)
 % find_signal_peaks finds peaks in a signal with min height and min distance
 % as criteria
 %
@@ -17,7 +17,7 @@ function[pks, time_of_pks] = find_signal_peaks(min_hei, min_dist, ...
 	min_distance = min_dist * samp_freq;
 
 	[pks, locs] = findpeaks(signal, 'MINPEAKHEIGHT', min_height, ...
-							'MINPEAKDISTANCE', min_distance);
+		'MINPEAKDISTANCE', min_distance);
 
 	time_of_pks = locs / samp_freq;
 

@@ -1,5 +1,5 @@
 function plot_2_platforms(file, vector, GRF_unit, time, GRF1, GRF2, ...
-						  time_pks1, time_pks2, pks1, pks2)
+	time_pks1, time_pks2, pks1, pks2)
 % plot_2_platforms plots the GRF signal x time and marks the peaks on the plot
 % with data from both force platforms
 %
