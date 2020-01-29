@@ -5,7 +5,7 @@ close all
 added_path = [pwd,'/functions'];
 addpath(added_path);
 
-% Imput from user ---------------------------------------------------------
+% Imput from user -------------------------------------------------------------
 
 % Select data directory
 path_to_data = uigetdir('../data');
@@ -47,10 +47,19 @@ elseif strcmp(jump_type, 'Box jumps')
 elseif strcmp(jump_type, 'Continuous jumps')
 	jump_files = continuous_jumps_files;
 end
+% Correct files order
+last_file_idx = size(jump_files, 2);
+last_file = jump_files{last_file_idx};
+if contains(last_file, '_5cm_')
+	for i = last_file_idx : - 1: 2
+		jump_files{i} = jump_files{i - 1};
+	end
+	jump_files{1} = last_file;
+end
 % Sample frequency (Hz)
 samp_freq = 1000;
 
-% -------------------------------------------------------------------------
+% -----------------------------------------------------------------------------
 
 % Set mininum peak height and distance
 if strcmp(jump_type, 'Drop jumps')
@@ -63,68 +72,56 @@ elseif strcmp(jump_type, 'Continuous jumps')
 	min_hei = 3;
 	min_dist = 0.2;
 end
-
 % Run analyis for all selected files
 for i = 1:size(jump_files, 2)
 	file = join([path_to_data, jump_files{i}]);
 	data = dlmread(file);
 	time = 1:length(data);
 	time = time / samp_freq;  % Time in seconds
-
 	% Get data from platform 1
 	% Ground reaction force (GRF; N)
 	[fX1, fY1, fZ1] = deal(data(:, 1), data(:, 2), data(:, 3));
 	fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
-
 	% Get data from platform 2
 	% Ground reaction force (N)
 	[fX2, fY2, fZ2] = deal(data(:, 7), data(:, 8), data(:, 9));
 	fR2 = sqrt(fX2.^2 + fY2.^2 + fZ2.^2); % Compute resultant vector
-
 	% Filter GRF data
 	[fX1, fY1, fZ1, fR1] = deal(filter_signal(samp_freq, fX1),...
 								filter_signal(samp_freq, fY1),...
 								filter_signal(samp_freq, fZ1),...
 								filter_signal(samp_freq, fR1));
-
 	[fX2, fY2, fZ2, fR2] = deal(filter_signal(samp_freq, fX2),...
 								filter_signal(samp_freq, fY2),...
 								filter_signal(samp_freq, fZ2),...
 								filter_signal(samp_freq, fR2));
-
 	% Get GRF in body weights (BW)
 	[fX1_BW, fY1_BW, fZ1_BW, fR1_BW] = deal(get_GRF_BW(body_mass, fX1), ...
 											get_GRF_BW(body_mass, fY1), ...
 											get_GRF_BW(body_mass, fZ1), ...
 											get_GRF_BW(body_mass, fR1));
-
 	[fX2_BW, fY2_BW, fZ2_BW, fR2_BW] = deal(get_GRF_BW(body_mass, fX2), ...
 											get_GRF_BW(body_mass, fY2), ...
 											get_GRF_BW(body_mass, fZ2), ...
 											get_GRF_BW(body_mass, fR2));
-
 	% Find peak GRF (N)
 	[pks_fZ1, time_pks_fZ1] = find_signal_peaks(min_hei, min_dist, ...
 												samp_freq, fZ1);
 	[pks_fR1, time_pks_fR1] = find_signal_peaks(min_hei, min_dist, ...
 												samp_freq, fR1);
-
 	[pks_fZ2, time_pks_fZ2] = find_signal_peaks(min_hei, min_dist, ...
 												samp_freq, fZ2);
 	[pks_fR2, time_pks_fR2] = find_signal_peaks(min_hei, min_dist, ...
 												samp_freq, fR2);
-
 	% Find peak GRF (BW)
 	[pks_fZ1_BW, time_pks_fZ1_BW] = find_signal_peaks(min_hei, min_dist, ...
 													  samp_freq, fZ1_BW);
 	[pks_fR1_BW, time_pks_fR1_BW] = find_signal_peaks(min_hei, min_dist, ...
 													  samp_freq, fR1_BW);
-
 	[pks_fZ2_BW, time_pks_fZ2_BW] = find_signal_peaks(min_hei, min_dist, ...
 													  samp_freq, fZ2_BW);
 	[pks_fR2_BW, time_pks_fR2_BW] = find_signal_peaks(min_hei, min_dist, ...
 													  samp_freq, fR2_BW);
-
 	% Plot Vertical GRF (N) x Time (s)
 	plot_2_platforms(jump_files{i}, 'vertical', 'N', time, ...
 					 fZ1, fZ2, time_pks_fZ1, time_pks_fZ2, pks_fZ1, pks_fZ2)
