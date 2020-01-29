@@ -1,4 +1,4 @@
-function plot_2_platforms(vector, GRF_unit, time, GRF1, GRF2, ...
+function plot_2_platforms(file, vector, GRF_unit, time, GRF1, GRF2, ...
 						  time_pks1, time_pks2, pks1, pks2)
 % plot_2_platforms plots the GRF signal x time and marks the peaks on the plot
 % with data from both force platforms
@@ -57,7 +57,7 @@ function plot_2_platforms(vector, GRF_unit, time, GRF1, GRF2, ...
 	yticks(GRF_ticks1);
 	xlim([0 max(time)]);
 	ylim([0 max_GRF1]);
-	title('Platform 1')
+	title({file, '', 'Platform 1'}, 'Interpreter', 'none')
 	ax = gca;
 	ax.FontSize = 16;
 
