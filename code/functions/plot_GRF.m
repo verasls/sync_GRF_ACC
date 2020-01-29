@@ -1,4 +1,4 @@
-function plot_GRF(platform, vector, GRF_unit, time, GRF, time_pks, pks)
+function plot_GRF(file, platform, vector, GRF_unit, time, GRF, time_pks, pks)
 % plot_GRF plots the GRF signal x time and marks the peaks on the plot
 %
 % platform should be an interger, either 1 or 2
@@ -52,6 +52,7 @@ function plot_GRF(platform, vector, GRF_unit, time, GRF, time_pks, pks)
 	yticks(GRF_ticks);
 	xlim([0 max(time)]);
 	ylim([0 max_GRF]);
+	title(file, 'Interpreter', 'none')
 	ax = gca;
 	ax.FontSize = 16;
 end
