@@ -43,7 +43,7 @@ threshold = 5 * samp_freq;
 % -------------------------------------------------------------------------
 
 for i = 1:size(continuous_jumps_files, 2)
-	file = join([path_to_data, continuous_jumps_files{1}]);
+	file = join([path_to_data, continuous_jumps_files{i}]);
 	data = dlmread(file);
 	time = 1:length(data);
 	time = time / samp_freq;  % Time in seconds
