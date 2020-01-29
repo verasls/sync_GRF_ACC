@@ -35,13 +35,25 @@ opts.Interpreter = 'tex';
 opts.Resize = 'on';
 answer = inputdlg(prompt, dlgtitle, [1 50], definput, opts);
 body_mass = str2num(answer{1});
+% Choose the type of jump to analyse
+jump_type = questdlg('What type of jumps do you want to analyse?', ...
+				     'Jumps menu', ...
+				     'Drop jumps', 'Box jumps', 'Continuous jumps', ...
+				     'Continuous jumps');
+if strcmp(jump_type, 'Drop jumps')
+	jump_files = drop_jumps_files;
+elseif strcmp(jump_type, 'Box jumps')
+	jump_files = box_jumps_files;
+elseif strcmp(jump_type, 'Continuous jumps')
+	jump_files = continuous_jumps_files;
+end
 % Sample frequency (Hz)
 samp_freq = 1000;
 
 % -------------------------------------------------------------------------
 
-for i = 1:size(continuous_jumps_files, 2)
-	file = join([path_to_data, continuous_jumps_files{i}]);
+for i = 1:size(jump_files, 2)
+	file = join([path_to_data, jump_files{i}]);
 	data = dlmread(file);
 	time = 1:length(data);
 	time = time / samp_freq;  % Time in seconds
@@ -93,17 +105,17 @@ for i = 1:size(continuous_jumps_files, 2)
 	[pks_fR2_BW, time_pks_fR2_BW] = find_signal_peaks(1, 0.2, samp_freq, fR2_BW);
 
 	% Plot Vertical GRF (N) x Time (s)
-	plot_2_platforms(continuous_jumps_files{i}, 'vertical', 'N', time, ...
+	plot_2_platforms(jump_files{i}, 'vertical', 'N', time, ...
 					 fZ1, fZ2, time_pks_fZ1, time_pks_fZ2, pks_fZ1, pks_fZ2)
 	% Plot Vertical GRF (BW) x Time (s)
-	plot_2_platforms(continuous_jumps_files{i}, 'vertical', 'BW', time, ...
+	plot_2_platforms(jump_files{i}, 'vertical', 'BW', time, ...
 					 fZ1_BW, fZ2_BW, time_pks_fZ1_BW, time_pks_fZ2_BW, ...
 					 pks_fZ1_BW, pks_fZ2_BW)
 	% Plot Resultant GRF (N) x Time (s)
-	plot_2_platforms(continuous_jumps_files{i}, 'resultant', 'N', time, ...
+	plot_2_platforms(jump_files{i}, 'resultant', 'N', time, ...
 					 fR1, fR2, time_pks_fR1, time_pks_fR2, pks_fR1, pks_fR2)
 	% Plot Resultant GRF (BW) x Time (s)
-	plot_2_platforms(continuous_jumps_files{i}, 'resultant', 'BW', time, ...
+	plot_2_platforms(jump_files{i}, 'resultant', 'BW', time, ...
 					 fR1_BW, fR2_BW, time_pks_fR1_BW, time_pks_fR2_BW, ...
 					 pks_fR1_BW, pks_fR2_BW)
 end
