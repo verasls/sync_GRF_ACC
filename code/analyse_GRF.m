@@ -72,9 +72,19 @@ elseif strcmp(jump_type, 'Continuous jumps')
 	min_hei = 3;
 	min_dist = 0.2;
 end
+
+% Display messages
+disp(['Selected ID: ' num2str(ID)]);
+disp(['Body mass: ' num2str(body_mass)]);
+disp(['Selected type of jumps: ' jump_type char(10)]);
+
 % Run analyis for all selected files
+disp('Files analysed:');
 for i = 1:size(jump_files, 2)
 	file = join([path_to_data, jump_files{i}]);
+
+	disp(jump_files{i});
+
 	data = dlmread(file);
 	time = 1:length(data);
 	time = time / samp_freq;  % Time in seconds
