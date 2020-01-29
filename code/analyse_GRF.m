@@ -86,7 +86,7 @@ for i = 1:size(jump_files, 2)
 	disp(jump_files{i});
 
 	data = dlmread(file);
-	time = 1:length(data);
+	time = 0:length(data) - 1;
 	time = time / samp_freq;  % Time in seconds
 	% Get data from platform 1
 	% Ground reaction force (GRF; N)
