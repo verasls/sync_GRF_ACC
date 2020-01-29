@@ -29,7 +29,7 @@ function plot_2_platforms(file, vector, GRF_unit, time, GRF1, GRF2, ...
 		label = 'Resultant ground reaction force (BW)';
 	end
 
-	figname = join([label, ' x Time (s) - Platforms 1 and 2']);
+	figname = join([file, ' - ', label, ' x Time (s) - Platforms 1 and 2']);
 
 	if strcmp(GRF_unit, 'N')
 		max_GRF1 = (ceil(max(GRF1) / 500) * 500);

@@ -27,9 +27,9 @@ function plot_GRF(file, platform, vector, GRF_unit, time, GRF, time_pks, pks)
 	end
 
 	if platform == 1
-		figname = join([label, ' x Time (s) - Platform 1']);
+		figname = join([file, ' - ', label, ' x Time (s) - Platform 1']);
 	elseif platform == 2
-		figname = join([label, ' x Time (s) - Platform 2']);
+		figname = join([file, ' - ', label, ' x Time (s) - Platform 2']);
 	end
 
 	if strcmp(GRF_unit, 'N')
