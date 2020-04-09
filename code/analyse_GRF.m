@@ -20,6 +20,8 @@ box_jumps_idx = cellfun('isempty', regexp(filenames, '_Box_Jumps_'));
 box_jumps_files = filenames(~box_jumps_idx);
 continuous_jumps_idx = cellfun('isempty', regexp(filenames, '\d_Jumps'));
 continuous_jumps_files = filenames(~continuous_jumps_idx);
+offset_idx = cellfun('isempty', regexp(filenames, '_vazio_'));
+offset_files = filenames(~offset_idx);
 % Get Subject's body mass (kg)
 file_ex = filenames{1}; % Select a file to obtain the variables below
 ID = str2num(file_ex(end - 6:end - 4));
@@ -76,13 +78,14 @@ end
 % Display messages
 disp(['Selected ID: ' num2str(ID)]);
 disp(['Body mass: ' num2str(body_mass)]);
-disp(['Selected type of jumps: ' jump_type char(10)]);
+disp(['Selected type of jumps: ' jump_type]);
+disp(['Offset file: ' offset_files newline]);
 
 % Run analyis for all selected files
 disp('Files analysed:');
 for i = 1:size(jump_files, 2)
 	file = join([path_to_data, jump_files{i}]);
-
+	offset_file = join([path_to_data, offset_files{1}]);
 	disp(jump_files{i});
 
 	data = dlmread(file);
@@ -92,6 +95,20 @@ for i = 1:size(jump_files, 2)
 	% Ground reaction force (GRF; N)
 	[fX1, fY1, fZ1] = deal(data(:, 1), data(:, 2), data(:, 3));
 	fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
+
+	% Read offset data
+	offset_data = dlmread(offset_file);
+
+	[offset_X1, offset_Y1, offset_Z1] = deal(offset_data(:, 1), ...
+		offset_data(:, 2), ...
+		offset_data(:, 3));
+	offset_R1 = sqrt(offset_X1.^2 + offset_Y1.^2 + offset_Z1.^2);
+
+	% Remove offset
+	[fX1, fY1, fZ1, fR1] = deal(remove_offset(fX1, offset_X1, samp_freq), ...
+		remove_offset(fY1, offset_Y1, samp_freq), ...
+		remove_offset(fZ1, offset_Z1, samp_freq), ...
+		remove_offset(fR1, offset_R1, samp_freq));
 
 	% Filter GRF data
 	[fX1, fY1, fZ1, fR1] = deal(filter_signal(samp_freq, fX1),...
