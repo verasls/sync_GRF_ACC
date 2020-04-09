@@ -1,92 +1,15 @@
-clear
-clc
-close all
+function corrected_vector = remove_offset(original_vector, offset_vector, samp_freq)
+	% Remove end of file
+	last_line = get_eval_end(offset_vector);
+	offset_vector = offset_vector(1:last_line);
 
-added_path = [pwd,'/functions'];
-addpath(added_path);
+	% Get offset time
+	time_offset = 0:last_line - 1;
+	time_offset = time_offset / samp_freq;
 
+	% Get offset to be removed and correct original file
+	offset = mean(offset_vector);
+	disp(['The offset was ' num2str(offset) 'N']);
 
-body_mass = 72.7
-
-% Read offset data
-off_filename = '../data/119/2017-12-09_vazio_1m_119.txt';
-
-off_data = dlmread(off_filename);
-
-[offset_X1, offset_Y1, offset_Z1] = deal(off_data(:, 1), ...
-	off_data(:, 2), ...
-	off_data(:, 3));
-offset_R1 = sqrt(offset_X1.^2 + offset_Y1.^2 + offset_Z1.^2);
-
-% Remove end of file
-last_line = get_eval_end(offset_R1);
-[offset_X1, offset_Y1, offset_Z1, offset_R1] = deal(offset_X1(1:last_line), ...
-	offset_Y1(1:last_line), offset_Z1(1:last_line), offset_R1(1:last_line));
-% Get time
-time_off = 1:last_line;
-time_off = time_off / 1000;
-
-offset = mean(offset_Z1)
-
-% Read data
-filename = '../data/119/2017-12-09_Jumps_5cm_1_m1_119.txt';
-
-data = dlmread(filename);
-time = 1:length(off_data);
-time = time / 1000;
-
-[fX1, fY1, fZ1] = deal(data(:, 1), data(:, 2), data(:, 3));
-fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2);
-
-% Subtract offset
-fZ1_corrected = fZ1 - offset;
-
-
-% Mean GRF
-mean_fZ1 = mean(fZ1(1:40000))
-mean_fZ1_corrected = mean(fZ1_corrected(1:40000))
-
-% Plot offset
-figure('NAME', 'Offset')
-set(gcf, 'Position', get(0, 'Screensize'));
-plot(time_off, offset_Z1);
-grid on
-xlabel('Time (s)', 'FontSize', 20);
-ylabel('Vertical ground reaction force (N)', 'FontSize', 20);
-xticks(0:5:max(time));
-yticks(0:500:ceil(max(offset_Z1) / 500) * 500);
-xlim([0 max(time)]);
-ylim([min(offset_Z1) ceil(max(offset_Z1) / 500) * 500]);
-title(off_filename, 'Interpreter', 'none')
-ax = gca;
-ax.FontSize = 16;
-
-% Plot GRF
-figure('NAME', 'Vertical GRF - ORIGINAL')
-set(gcf, 'Position', get(0, 'Screensize'));
-plot(time, fZ1);
-grid on
-xlabel('Time (s)', 'FontSize', 20);
-ylabel('Vertical ground reaction force (N)', 'FontSize', 20);
-xticks(0:5:max(time));
-yticks(0:500:ceil(max(fZ1) / 500) * 500);
-xlim([0 max(time)]);
-ylim([0 ceil(max(fZ1) / 500) * 500]);
-title(off_filename, 'Interpreter', 'none')
-ax = gca;
-ax.FontSize = 16;
-
-% Plot corrected GRF
-figure('NAME', 'Vertical GRF - OFFSET REMOVED')
-set(gcf, 'Position', get(0, 'Screensize'));
-plot(time, fZ1_corrected);
-grid on
-xlabel('Time (s)', 'FontSize', 20);
-ylabel('Vertical ground reaction force (N)', 'FontSize', 20);
-xticks(0:5:max(time));
-yticks(0:500:ceil(max(fZ1_corrected) / 500) * 500);
-xlim([0 max(time)]);
-ylim([0 ceil(max(fZ1_corrected) / 500) * 500]);
-title(off_filename, 'Interpreter', 'none')
-ax = gca;
-ax.FontSize = 16;
+	corrected_vector = original_vector - offset;
+end
