@@ -1,17 +1,17 @@
-function end_eval = get_eval_end(resultant_vector)
+function end_eval = get_eval_end(vector)
 % get_eval_end gets the array index corresponding to the end of the evaluation.
 % The end is assumed when there are at least two consecutive seconds of 0
-% standard deviation. The resultant vector should be used as input.
+% standard deviation.
 %
-% resultant_vector should be an array with the resultant vector signal.
+% vector should be an array with the ground reaction force vector signal.
 
 	block_size = 1000; % 1 sec * 1000 Hz samp_freq
-	n_blocks = size(resultant_vector, 1) / block_size;
+	n_blocks = size(vector, 1) / block_size;
 	data_std = zeros(n_blocks, 1);
 	for i = 1:n_blocks
 		start_line = i * block_size - (block_size - 1);
 		end_line = i * block_size;
-		data_std(i) = std(resultant_vector(start_line:end_line));
+		data_std(i) = std(vector(start_line:end_line));
 	end
 
 	% Find where the array goes from non-zero to zero and vice versa
