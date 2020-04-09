@@ -5,7 +5,7 @@ function end_eval = get_eval_end(resultant_vector)
 %
 % resultant_vector should be an array with the resultant vector signal.
 
-	block_size = 1000 % 1 sec * 1000 Hz samp_freq
+	block_size = 1000; % 1 sec * 1000 Hz samp_freq
 	n_blocks = size(resultant_vector, 1) / block_size;
 	data_std = zeros(n_blocks, 1);
 	for i = 1:n_blocks

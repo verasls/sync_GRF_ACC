@@ -2,21 +2,31 @@ clear
 clc
 close all
 
+added_path = [pwd,'/functions'];
+addpath(added_path);
+
+
 body_mass = 72.7
 
 % Read offset data
 off_filename = '../data/119/2017-12-09_vazio_1m_119.txt';
 
 off_data = dlmread(off_filename);
-time = 1:length(off_data);
-time = time / 1000;
 
 [offset_X1, offset_Y1, offset_Z1] = deal(off_data(:, 1), ...
 	off_data(:, 2), ...
 	off_data(:, 3));
 offset_R1 = sqrt(offset_X1.^2 + offset_Y1.^2 + offset_Z1.^2);
 
-offset = mean(offset_Z1(1:10000)) % seconds 1:10
+% Remove end of file
+last_line = get_eval_end(offset_R1);
+[offset_X1, offset_Y1, offset_Z1, offset_R1] = deal(offset_X1(1:last_line), ...
+	offset_Y1(1:last_line), offset_Z1(1:last_line), offset_R1(1:last_line));
+% Get time
+time_off = 1:last_line;
+time_off = time_off / 1000;
+
+offset = mean(offset_Z1)
 
 % Read data
 filename = '../data/119/2017-12-09_Jumps_5cm_1_m1_119.txt';
@@ -39,7 +49,7 @@ mean_fZ1_corrected = mean(fZ1_corrected(1:40000))
 % Plot offset
 figure('NAME', 'Offset')
 set(gcf, 'Position', get(0, 'Screensize'));
-plot(time, offset_Z1);
+plot(time_off, offset_Z1);
 grid on
 xlabel('Time (s)', 'FontSize', 20);
 ylabel('Vertical ground reaction force (N)', 'FontSize', 20);
@@ -52,7 +62,7 @@ ax = gca;
 ax.FontSize = 16;
 
 % Plot GRF
-figure('NAME', 'Vertical GRF')
+figure('NAME', 'Vertical GRF - ORIGINAL')
 set(gcf, 'Position', get(0, 'Screensize'));
 plot(time, fZ1);
 grid on
@@ -67,7 +77,7 @@ ax = gca;
 ax.FontSize = 16;
 
 % Plot corrected GRF
-figure('NAME', 'Vertical GRF CORRECTED')
+figure('NAME', 'Vertical GRF - OFFSET REMOVED')
 set(gcf, 'Position', get(0, 'Screensize'));
 plot(time, fZ1_corrected);
 grid on
