@@ -76,10 +76,10 @@ elseif strcmp(jump_type, 'Continuous jumps')
 end
 
 % Display messages
-disp(['Selected ID: ' num2str(ID)]);
-disp(['Body mass: ' num2str(body_mass)]);
-disp(['Selected type of jumps: ' jump_type]);
-disp(['Offset file: ' offset_files newline]);
+disp(['Selected ID: ', num2str(ID)]);
+disp(['Body mass: ', num2str(body_mass)]);
+disp(['Selected type of jumps: ', jump_type]);
+disp(['Offset file: ', offset_files{1}, newline]);
 
 % Run analyis for all selected files
 disp('Files analysed:');
