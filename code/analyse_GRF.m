@@ -105,10 +105,14 @@ for i = 1:size(jump_files, 2)
 	offset_R1 = sqrt(offset_X1.^2 + offset_Y1.^2 + offset_Z1.^2);
 
 	% Remove offset
-	[fX1, fY1, fZ1, fR1] = deal(remove_offset(fX1, offset_X1, samp_freq), ...
-		remove_offset(fY1, offset_Y1, samp_freq), ...
-		remove_offset(fZ1, offset_Z1, samp_freq), ...
-		remove_offset(fR1, offset_R1, samp_freq));
+	disp('For the X axis:')
+	fX1 = remove_offset(fX1, offset_X1, samp_freq);
+	disp('For the Y axis:')
+	fY1 = remove_offset(fY1, offset_Y1, samp_freq);
+	disp('For the Z axis:')
+	fZ1 = remove_offset(fZ1, offset_Z1, samp_freq);
+	disp('For the resultant vector:')
+	fR1 = remove_offset(fR1, offset_R1, samp_freq);
 
 	% Filter GRF data
 	[fX1, fY1, fZ1, fR1] = deal(filter_signal(samp_freq, fX1),...
