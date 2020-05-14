@@ -2,13 +2,14 @@ clear
 clc
 close all
 
-added_path = [pwd,'/functions'];
-addpath(added_path);
+functions_path = [pwd,'/functions'];
+addpath(functions_path);
 
 % Imput from user -------------------------------------------------------------
 
 % Select data directory
-path_to_data = uigetdir('../data');
+default_directory = '/Volumes/LVERAS/sync_GRF_ACC/data';
+path_to_data = uigetdir(default_directory);
 path_to_data = join([path_to_data, '/']);
 % Get file names
 files = dir([path_to_data, '*.txt']);
@@ -152,4 +153,4 @@ for i = 1:size(jump_files, 2)
 		time, fR1_BW, time_pks_fR1_BW, pks_fR1_BW)
 end
 
-rmpath(added_path);
+rmpath(functions_path);
