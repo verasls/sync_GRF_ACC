@@ -80,14 +80,20 @@ end
 disp(['Selected ID: ', num2str(ID)]);
 disp(['Body mass: ', num2str(body_mass)]);
 disp(['Selected type of jumps: ', jump_type]);
-disp(['Offset file: ', offset_files{1}, newline]);
+if isempty(offset_files)
+	disp('No empty file detected; offset not removed')
+else
+	disp(['Offset file: ', offset_files{1}]);
+end
 
 % Run analyis for all selected files
-disp('Files analysed:');
+disp([newline, 'Files analysed:']);
 for i = 1:size(jump_files, 2)
 	file = join([path_to_data, jump_files{i}]);
-	offset_file = join([path_to_data, offset_files{1}]);
-	disp(jump_files{i});
+	if isempty(offset_files) == 0
+		offset_file = join([path_to_data, offset_files{1}]);
+	end
+	disp([newline, jump_files{i}]);
 
 	data = dlmread(file);
 	time = 0:length(data) - 1;
@@ -97,23 +103,26 @@ for i = 1:size(jump_files, 2)
 	[fX1, fY1, fZ1] = deal(data(:, 1), data(:, 2), data(:, 3));
 	fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
 
-	% Read offset data
-	offset_data = dlmread(offset_file);
+	% Process offset
+	if isempty(offset_files) == 0
+		% Read offset data
+		offset_data = dlmread(offset_file);
 
-	[offset_X1, offset_Y1, offset_Z1] = deal(offset_data(:, 1), ...
-		offset_data(:, 2), ...
-		offset_data(:, 3));
-	offset_R1 = sqrt(offset_X1.^2 + offset_Y1.^2 + offset_Z1.^2);
+		[offset_X1, offset_Y1, offset_Z1] = deal(offset_data(:, 1), ...
+			offset_data(:, 2), ...
+			offset_data(:, 3));
+		offset_R1 = sqrt(offset_X1.^2 + offset_Y1.^2 + offset_Z1.^2);
 
-	% Remove offset
-	disp('For the X axis:')
-	fX1 = remove_offset(fX1, offset_X1, samp_freq);
-	disp('For the Y axis:')
-	fY1 = remove_offset(fY1, offset_Y1, samp_freq);
-	disp('For the Z axis:')
-	fZ1 = remove_offset(fZ1, offset_Z1, samp_freq);
-	disp('For the resultant vector:')
-	fR1 = remove_offset(fR1, offset_R1, samp_freq);
+		% Remove offset
+		disp('For the X axis:')
+		fX1 = remove_offset(fX1, offset_X1, samp_freq);
+		disp('For the Y axis:')
+		fY1 = remove_offset(fY1, offset_Y1, samp_freq);
+		disp('For the Z axis:')
+		fZ1 = remove_offset(fZ1, offset_Z1, samp_freq);
+		disp('For the resultant vector:')
+		fR1 = remove_offset(fR1, offset_R1, samp_freq);
+	end
 
 	% Filter GRF data
 	[fX1, fY1, fZ1, fR1] = deal(filter_signal(samp_freq, fX1),...
