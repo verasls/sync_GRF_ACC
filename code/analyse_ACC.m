@@ -26,5 +26,6 @@ set(gcf, 'Position', get(0, 'Screensize'));
 plot(timestamp, aR);
 grid on
 yticks(0:1:ceil(max(aR)));
+xticks(timestamp(1):minutes(10):timestamp(end));
 
 rmpath(functions_path);
