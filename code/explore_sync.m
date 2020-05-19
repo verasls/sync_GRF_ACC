@@ -52,31 +52,49 @@ aY = data.AccelerometerY(acc_start_idx:acc_end_idx);
 aZ = data.AccelerometerZ(acc_start_idx:acc_end_idx);
 aR = sqrt(aX.^2 + aY.^2 + aZ.^2); % Compute resultant vector
 
-% Read GRF files
-grf_filename = join([data_dir, char(grf_names(1))]);
-grf = dlmread(grf_filename);
-% Get data from platform 1
-% Ground reaction force (GRF; N)
-[fX1, fY1, fZ1] = deal(grf(:, 1), grf(:, 2), grf(:, 3));
+% Read all GRF files
+fX1 = [];
+fY1 = [];
+fZ1 = [];
+grf_tmstp = [];
+for i = 1:size(grf_names)
+	grf_filename = join([data_dir, char(grf_names(i))]);
+	grf = dlmread(grf_filename);
+	% Get data from platform 1
+	% Ground reaction force (GRF; N)
+	[X, Y, Z] = deal(grf(:, 1), grf(:, 2), grf(:, 3));
+	% Create timestamp
+	n_sec = size(grf, 1) / samp_freq;
+	t1 = grf_dtms(i);
+	t2 = grf_dtms(i) + seconds(n_sec);
+	tmstp = t1:seconds(1 / samp_freq):t2;
+	tmstp = tmstp';
+	tmstp = tmstp(1:end - 1);
+
+	% Append values to final arrays
+	fX1 = [fX1, X];
+	fY1 = [fY1, Y];
+	fZ1 = [fZ1, Z];
+	grf_tmstp = [grf_tmstp, tmstp];
+end
 fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
-% Create timestamp
-n_sec = size(grf, 1) / samp_freq;
-t1 = grf_dtms(1);
-t2 = grf_dtms(1) + seconds(n_sec);
-grf_tmstp = t1:seconds(1 / samp_freq):t2;
-grf_tmstp = grf_tmstp';
-grf_tmstp = grf_tmstp(1:end - 1);
 
 % Plot acceleration over time
-figure('NAME', 'Resultant acceleration X Time')
+fig1 = figure('NAME', 'Resultant acceleration X Time');
+set(fig1,'defaultLegendAutoUpdate','off');
 set(gcf, 'Position', get(0, 'Screensize'));
 yyaxis left
-plot(timestamp, aR, 'DisplayName', 'Accelerometer');
+plot(timestamp, aR);
 grid on
 yticks(0:1:ceil(max(aR)));
 xticks(timestamp(1):minutes(10):timestamp(end));
 yyaxis right
-plot(grf_tmstp, fR1, 'DisplayName', 'Force plates');
+for i = 1:size(fR1, 2)
+	plot(grf_tmstp(:, i), fR1(:, i), '-', 'color', [0.8500 0.3250 0.0980]);
+	hold on	
+end
+% plot(grf_tmstp, fR1, 'DisplayName', 'Force plates');
+legend('Accelerometer', 'Force plate');
 lgd = legend;
 lgd.FontSize = 18;
 
