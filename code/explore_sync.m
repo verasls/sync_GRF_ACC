@@ -7,8 +7,8 @@ addpath(functions_path);
 
 plat_freq = 1000;
 acc_freq = 100;
-disp(['Accelerometer sampling frequency = ', num2str(acc_freq), 'Hz'])
-disp(['Force platform sampling frequency = ', num2str(plat_freq), 'Hz'])
+disp(['Accelerometer sampling frequency: ', num2str(acc_freq), 'Hz'])
+disp(['Force platform sampling frequency: ', num2str(plat_freq), 'Hz'])
 data_dir = '/Volumes/LVERAS/sync_GRF_ACC/data/119/';
 % Read accelerometer data
 disp('Reading accelerometer data')
@@ -68,6 +68,12 @@ for i = 1:size(grf_names)
 	% Get data from platform 1
 	% Ground reaction force (GRF; N)
 	[X, Y, Z] = deal(grf(:, 1), grf(:, 2), grf(:, 3));
+
+	% Resample
+	X_rsmpl = resample(X, acc_freq, plat_freq);
+	Y_rsmpl = resample(Y, acc_freq, plat_freq);
+	Z_rsmpl = resample(Z, acc_freq, plat_freq);
+
 	% Create timestamp
 	n_sec = size(grf, 1) / plat_freq;
 	t1 = grf_dtms(i);
@@ -77,24 +83,12 @@ for i = 1:size(grf_names)
 	tmstp = tmstp(1:end - 1);
 
 	% Append values to final arrays
-	fX1 = [fX1, X];
-	fY1 = [fY1, Y];
-	fZ1 = [fZ1, Z];
+	fX1 = [fX1, X_rsmpl];
+	fY1 = [fY1, Y_rsmpl];
+	fZ1 = [fZ1, Z_rsmpl];
 	grf_tmstp = [grf_tmstp, tmstp];
 end
-% fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2); % Compute resultant vector
-
-% Resample GRF data
-disp(['Resampling force platform signal'])
-fX_resamp = [];
-fY_resamp = [];
-fZ_resamp = [];
-for i = 1:size(fX1, 2)
-	fX_resamp(:, i) = resample(fX1(:, i), acc_freq, plat_freq);
-	fY_resamp(:, i) = resample(fX1(:, i), acc_freq, plat_freq);
-	fZ_resamp(:, i) = resample(fX1(:, i), acc_freq, plat_freq);
-end
-
+plat_freq = acc_freq;
 
 % Filter signals and compute resultant vector
 disp('Filtering acceleration and force platform signals')
@@ -104,13 +98,11 @@ aZ = filter_signal(acc_freq, aZ);
 
 aR = sqrt(aX.^2 + aY.^2 + aZ.^2);
 
-for i = 1:size(fX_resamp, 2)
-	fX_resamp(:, i) = filter_signal(plat_freq, fX_resamp(:, i));
-	fY_resamp(:, i) = filter_signal(plat_freq, fY_resamp(:, i));
-	fZ_resamp(:, i) = filter_signal(plat_freq, fZ_resamp(:, i));
+fX1 = filter_signal(plat_freq, fX1);
+fY1 = filter_signal(plat_freq, fY1);
+fZ1 = filter_signal(plat_freq, fZ1);
 
-	fR_resamp(:, i) = sqrt(fX_resamp(:, i).^2 + fY_resamp(:, i).^2 + fZ_resamp(:, i).^2);
-end
+fR1 = sqrt(fX1.^2 + fY1.^2 + fZ1.^2);
 
 
 % Plot acceleration over time
@@ -123,8 +115,8 @@ grid on
 yticks(0:1:ceil(max(aR)));
 xticks(timestamp(1):minutes(10):timestamp(end));
 yyaxis right
-for i = 1:size(fR_resamp, 2)
-	plot(grf_tmstp(:, i), fR_resamp(:, i), '-', 'color', [0.8500 0.3250 0.0980]);
+for i = 1:size(fR1, 2)
+	plot(grf_tmstp(:, i), fR1(:, i), '-', 'color', [0.8500 0.3250 0.0980]);
 	hold on	
 end
 % plot(grf_tmstp, fR1, 'DisplayName', 'Force plates');
