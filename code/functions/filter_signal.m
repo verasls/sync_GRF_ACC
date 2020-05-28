@@ -12,8 +12,9 @@ function filtered = filter_signal(samp_freq, signal)
 	fnyq = samp_freq / 2;  % Nyquist frequency (half of the sampling frequency)
 	Wn = cutoff / fnyq;  % Filter parameter
 
-	[b, a] = butter(n, Wn, 'low');
+	[z, p, k] = butter(n, Wn, 'low');
+	[sos, g] = zp2sos(z, p, k);
 
 	% Filter GRF (N)
-	filtered = filtfilt(b, a, signal);
+	filtered = filtfilt(sos, g, signal);
 end
