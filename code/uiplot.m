@@ -20,8 +20,8 @@ lgd = legend;
 lgd.FontSize = 18;
 
 
-value = plot_slider(fig10, fig12)
-function value = plot_slider(fig, plot_grf)
+adjusted_time = plot_slider(fig10, fig12)
+function adjusted_time = plot_slider(fig, plot_grf)
 	% Create slider
 	fig_pos = get(fig, 'Position');
 	fig_l = fig_pos(1);
@@ -35,6 +35,7 @@ function value = plot_slider(fig, plot_grf)
 	sldr_bottom = 20;
 
 	value = 0;
+	original_time = min(get(plot_grf, 'Xdata'));
 
 	uicontrol(fig, 'Style', 'slider', ...
 			  'Position', [sldr_left, sldr_bottom, sldr_width, sldr_height], ...
@@ -53,13 +54,15 @@ function value = plot_slider(fig, plot_grf)
 
 	uiwait
 
+	adjusted_time = min(get(plot_grf, 'Xdata'));
+
 	function slider_callback(hObj, event)
 		value = round(get(hObj, 'Value') - value);
 		set(hObj, 'Value', value)
 
 		xdata = get(plot_grf, 'Xdata');
-		time_adjust = seconds(value);
-		set(plot_grf, 'Xdata', xdata + time_adjust)
+		adjust = seconds(value);
+		set(plot_grf, 'Xdata', xdata + adjust)
 	end
 end
 
