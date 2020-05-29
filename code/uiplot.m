@@ -2,6 +2,9 @@ close all
 clear
 clc
 
+functions_path = [pwd,'/functions'];
+addpath(functions_path);
+
 load('../data/plot_data.mat')
 
 % Normalize the two different scales
@@ -25,7 +28,7 @@ adjusted_time = plot_slider(fig10, fig11);
 
 %% Make a new plot with the adjusted time
 % Generate the new GRF timestamp
-n_sec = size(grf_plot, 1) / 100 % Resampled force plate frequency;
+n_sec = size(grf_plot, 1) / 100; % Resampled force plate frequency;
 t1 = adjusted_time;
 t2 = t1 + seconds(n_sec);
 new_grf_tmstp = t1:seconds(1 / 100):t2;
@@ -37,15 +40,38 @@ end_time = max(new_grf_tmstp) + seconds(30);
 % Get start and end indices
 acc_start_idx = find(timestamp == start_time);
 acc_end_idx = find(timestamp == end_time);
+% Create a new Accelerometer timestamp
+new_acc_tmstp = timestamp(acc_start_idx:acc_end_idx);
 
 figure()
 set(gcf, 'Position', get(0, 'Screensize'));
-plot(timestamp(acc_start_idx:acc_end_idx), acc_plot(acc_start_idx:acc_end_idx))
+plot(new_acc_tmstp, acc_plot(acc_start_idx:acc_end_idx))
 hold on
 plot(new_grf_tmstp, grf_plot)
-hold off
 
+% Find peaks on the acceleration signal
+min_hei = 4;
+min_dist = 3;
+samp_freq = 100;
+acc_sig = acc_plot(acc_start_idx:acc_end_idx);
+[pks_acc, time_pks_acc] = find_signal_peaks(min_hei, min_dist, samp_freq, acc_sig);
 
+% Plot the acceleration peaks
+plot(new_acc_tmstp(time_pks_acc), pks_acc, 'rx', 'MarkerSize', 10) 
+
+% Select region of interest
+ax = gca;
+y_lim = get(gca, 'YLim');
+% Beginning
+[x_b, y] = ginput(1);
+x_b = num2ruler(x_b, ax.XAxis);
+line([x_b, x_b], y_lim, 'Color', 'k', 'LineWidth', 2)
+% End
+[x_e, y] = ginput(1);
+x_e = num2ruler(x_e, ax.XAxis);
+line([x_e, x_e], y_lim, 'Color', 'k', 'LineWidth', 2)
+
+rmpath(functions_path);
 function adjusted_time = plot_slider(fig, plot_grf)
 	% Create slider
 	fig_pos = get(fig, 'Position');
@@ -90,4 +116,5 @@ function adjusted_time = plot_slider(fig, plot_grf)
 		set(plot_grf, 'Xdata', xdata + adjust)
 	end
 end
+
 
