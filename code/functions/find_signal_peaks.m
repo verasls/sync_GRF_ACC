@@ -13,13 +13,13 @@ function[pks, time_of_pks] = find_signal_peaks(min_hei, min_dist, ...
 %
 % signal should be an array with the signal
 
-	min_height = min_hei * mean(signal);
+	min_height = min_hei * mean(abs(signal));
 	min_distance = min_dist * samp_freq;
 
 	[pks, locs] = findpeaks(signal, 'MINPEAKHEIGHT', min_height, ...
 		'MINPEAKDISTANCE', min_distance);
 
-	time_of_pks = locs / samp_freq;
+	time_of_pks = locs;%/ samp_freq;
 
 	warning('off', 'signal:findpeaks:largeMinPeakHeight')
 end
