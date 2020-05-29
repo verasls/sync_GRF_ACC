@@ -20,8 +20,8 @@ lgd = legend;
 lgd.FontSize = 18;
 
 
-move_plot(fig10, fig12)
-function move_plot(fig, plot_grf)
+value = plot_slider(fig10, fig12)
+function value = plot_slider(fig, plot_grf)
 	% Create slider
 	fig_pos = get(fig, 'Position');
 	fig_l = fig_pos(1);
@@ -29,25 +29,36 @@ function move_plot(fig, plot_grf)
 	fig_w = fig_pos(3);
 	fig_h = fig_pos(4);
 
-	ui_width = 100;
-	ui_height = 20;
-	ui_left = fig_l + fig_w / 2 - ui_width / 2;
-	ui_bottom = 20;
+	sldr_width = 100;
+	sldr_height = 20;
+	sldr_left = fig_l + fig_w / 2 - sldr_width / 2;
+	sldr_bottom = 20;
 
 	value = 0;
 
 	uicontrol(fig, 'Style', 'slider', ...
-			  'Position', [ui_left, ui_bottom, ui_width, ui_height], ...
+			  'Position', [sldr_left, sldr_bottom, sldr_width, sldr_height], ...
 			  'Min', - 60, 'Max', 60, 'Value', value,...
-			  'Callback', {@slide_plot})
+			  'Callback', {@slider_callback})
 
-	function slide_plot(hObj, event)
+	bttn_width = 100;
+	bttn_height = 20;
+	bttn_left = fig_w - 4 * bttn_width;
+	bttn_bottom = 20;
+
+	uicontrol(fig, 'Style', 'pushbutton', ...
+			  'String', 'Continue', ...
+			  'Position', [bttn_left, bttn_bottom, bttn_width, bttn_height], ...
+			  'Callback', 'uiresume(gcbf)')
+
+	uiwait
+
+	function slider_callback(hObj, event)
 		value = round(get(hObj, 'Value') - value);
 		set(hObj, 'Value', value)
 
-		time_adjust = seconds(value);
-		disp(time_adjust)
 		xdata = get(plot_grf, 'Xdata');
+		time_adjust = seconds(value);
 		set(plot_grf, 'Xdata', xdata + time_adjust)
 	end
 end
