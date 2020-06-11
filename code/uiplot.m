@@ -18,11 +18,11 @@ plot(timestamp, acc_plot);
 hold on
 xticks(timestamp(1):minutes(10):timestamp(end));
 fig11 = plot(grf_tmstp(:, 1), grf_plot, '-', 'color', [0.8500 0.3250 0.0980]);
-% plot(grf_tmstp, fR1, 'DisplayName', 'Force plates');
+hold off
+title({'Adjust the plots using the buttons bellow', 'Press "Continue" when done'})
 legend('Accelerometer', 'Force plate');
-lgd = legend;
-lgd.FontSize = 18;
-
+ax = gca;
+ax.FontSize = 15;
 
 adjusted_time = plot_slider(fig10, fig11);
 
@@ -48,6 +48,7 @@ set(gcf, 'Position', get(0, 'Screensize'));
 plot(new_acc_tmstp, acc_plot(acc_start_idx:acc_end_idx))
 hold on
 plot(new_grf_tmstp, grf_plot)
+legend('Acceleration', 'Ground reaction force')
 
 % Find peaks on the acceleration signal
 min_hei = 4;
@@ -58,19 +59,22 @@ acc_sig = acc_plot(acc_start_idx:acc_end_idx);
 time_pks_acc = new_acc_tmstp(pks_acc_idx);
 
 % Plot the acceleration peaks
-plot(time_pks_acc, pks_acc, 'rx', 'MarkerSize', 10) 
+plot(time_pks_acc, pks_acc, 'rx', 'MarkerSize', 10, 'DisplayName', 'Acceleration peaks')
 
 % Select region of interest
 ax = gca;
+ax.FontSize = 15;
 y_lim = get(gca, 'YLim');
 % Beginning
+title('Click on the BEGINNING of the region of interest')
 [x_b, y] = ginput(1);
 x_b = num2ruler(x_b, ax.XAxis);
-line([x_b, x_b], y_lim, 'Color', 'k', 'LineWidth', 2)
+line([x_b, x_b], y_lim, 'Color', 'k', 'LineWidth', 2, 'HandleVisibility', 'off')
 % End
+title('Click on the END of the region of interest')
 [x_e, y] = ginput(1);
 x_e = num2ruler(x_e, ax.XAxis);
-line([x_e, x_e], y_lim, 'Color', 'k', 'LineWidth', 2)
+line([x_e, x_e], y_lim, 'Color', 'k', 'LineWidth', 2, 'HandleVisibility', 'off')
 
 % Remove the peaks out of the region of interest
 pks_keep = time_pks_acc > x_b & time_pks_acc < x_e;
@@ -86,6 +90,9 @@ plot(new_grf_tmstp, grf_plot)
 plot(time_pks_acc, pks_acc, 'rx', 'MarkerSize', 10)
 line([x_b, x_b], y_lim, 'Color', 'k', 'LineWidth', 2)
 line([x_e, x_e], y_lim, 'Color', 'k', 'LineWidth', 2)
+legend('Acceleration', 'Ground reaction force', 'Acceleration peaks')
+ax = gca;
+ax.FontSize = 15;
 
 % Find peaks in the force signal
 pks_grf = zeros(size(pks_acc));
@@ -102,7 +109,7 @@ for i = 1:length(pks_acc)
 end
 time_pks_grf = new_grf_tmstp(pks_grf_idx);
 
-plot(time_pks_grf, pks_grf, 'gx', 'MarkerSize', 10)
+plot(time_pks_grf, pks_grf, 'gx', 'MarkerSize', 10, 'DisplayName', 'Ground reaction force peaks')
 
 
 rmpath(functions_path);
