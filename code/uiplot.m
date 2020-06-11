@@ -54,10 +54,11 @@ min_hei = 4;
 min_dist = 3;
 samp_freq = 100;
 acc_sig = acc_plot(acc_start_idx:acc_end_idx);
-[pks_acc, time_pks_acc] = find_signal_peaks(min_hei, min_dist, samp_freq, acc_sig);
+[pks_acc, pks_acc_idx] = find_signal_peaks(min_hei, min_dist, samp_freq, acc_sig);
+time_pks_acc = new_acc_tmstp(pks_acc_idx);
 
 % Plot the acceleration peaks
-plot(new_acc_tmstp(time_pks_acc), pks_acc, 'rx', 'MarkerSize', 10) 
+plot(time_pks_acc, pks_acc, 'rx', 'MarkerSize', 10) 
 
 % Select region of interest
 ax = gca;
@@ -69,6 +70,20 @@ line([x_b, x_b], y_lim, 'Color', 'k', 'LineWidth', 2)
 % End
 [x_e, y] = ginput(1);
 x_e = num2ruler(x_e, ax.XAxis);
+line([x_e, x_e], y_lim, 'Color', 'k', 'LineWidth', 2)
+
+% Remove the peaks out of the region of interest
+pks_keep = time_pks_acc > x_b & time_pks_acc < x_e;
+pks_acc = pks_acc(pks_keep);
+time_pks_acc = time_pks_acc(pks_keep);
+
+figure()
+set(gcf, 'Position', get(0, 'Screensize'));
+plot(new_acc_tmstp, acc_sig)
+hold on
+plot(new_grf_tmstp, grf_plot)
+plot(time_pks_acc, pks_acc, 'rx', 'MarkerSize', 10)
+line([x_b, x_b], y_lim, 'Color', 'k', 'LineWidth', 2)
 line([x_e, x_e], y_lim, 'Color', 'k', 'LineWidth', 2)
 
 rmpath(functions_path);
