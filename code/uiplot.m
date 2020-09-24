@@ -88,7 +88,7 @@ plot(new_acc_tmstp, acc_sig)
 hold on
 plot(new_grf_tmstp, grf_plot)
 plot(time_pks_acc, pks_acc, 'rx', 'MarkerSize', 10)
-line([x_b, x_b], y_lim, 'Color', 'k', 'LineWidth', 2)
+line([x_b, x_b], y_lim, 'Color', 'k', 'LineWidth', 3)
 line([x_e, x_e], y_lim, 'Color', 'k', 'LineWidth', 2)
 legend('Acceleration', 'Ground reaction force', 'Acceleration peaks')
 ax = gca;
@@ -99,10 +99,10 @@ pks_grf = zeros(size(pks_acc));
 pks_grf_idx = zeros(size(pks_acc));
 for i = 1:length(pks_acc)
 	idx_min = time_pks_acc(i) - seconds(min_dist);
-    idx_max = time_pks_acc(i) + seconds(min_dist);
+    	idx_max = time_pks_acc(i) + seconds(min_dist);
     
-    idx_min = find(new_grf_tmstp == idx_min);
-    idx_max = find(new_grf_tmstp == idx_max);
+    	idx_min = find(new_grf_tmstp == idx_min);
+    	idx_max = find(new_grf_tmstp == idx_max);
      
 	pks_grf(i) = max(grf_plot(idx_min:idx_max));
 	pks_grf_idx(i) = find(grf_plot(idx_min:idx_max) == pks_grf(i), 1, 'first') + idx_min - 1;
