@@ -6,7 +6,7 @@ functions_path = [pwd,'/functions'];
 addpath(functions_path);
 
 % Read data
-filename = '/Volumes/LVERAS/sync_GRF_ACC/data/119/Waist__Impact__119 (2017-12-09)-IMU.csv';
+filename = '../data/119/Waist__Impact__119 (2017-12-09)-IMU.csv';
 data = readtable(filename, 'HeaderLines', 10);
 warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
 
