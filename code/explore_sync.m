@@ -9,7 +9,7 @@ plat_freq = 1000;
 acc_freq = 100;
 disp(['Accelerometer sampling frequency: ', num2str(acc_freq), 'Hz'])
 disp(['Force platform sampling frequency: ', num2str(plat_freq), 'Hz'])
-data_dir = '/Volumes/LVERAS/sync_GRF_ACC/data/119/';
+data_dir = '../data/119/';
 % Read accelerometer data
 disp('Reading accelerometer data')
 acc_file = join([data_dir, 'Waist__Impact__119 (2017-12-09)-IMU.csv']);
