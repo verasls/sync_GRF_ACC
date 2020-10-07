@@ -57,3 +57,19 @@ opts.Interpreter = 'tex';
 opts.Resize = 'on';
 answer = inputdlg(prompt, dlgtitle, [1 50], definput, opts);
 body_mass = str2num(answer{1});
+
+% Format accelerometer timestamp variable
+acc_tmstp = acc_data.Timestamp;
+acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'yyyy-MM-dd''T''HH:mm:ss.S');
+acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'dd-MM-yyyy HH:mm:ss.S');
+
+% Get accelerometer data start and end time indices
+acc_start_idx = find(acc_tmstp == start_time);
+acc_end_idx = find(acc_tmstp == end_time);
+% Crop timestamp between these boundaries
+acc_tmstp = acc_tmstp(acc_start_idx:acc_end_idx);
+
+% Extract accelerometry data per axis
+aX = acc_data.AccelerometerX(acc_start_idx:acc_end_idx);
+aY = acc_data.AccelerometerY(acc_start_idx:acc_end_idx);
+aZ = acc_data.AccelerometerZ(acc_start_idx:acc_end_idx);
