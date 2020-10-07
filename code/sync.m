@@ -6,9 +6,7 @@ functions_path = [pwd,'/functions'];
 addpath(functions_path);
 
 % Select data directory through a GUI
-default_directory = '../data';
-path_to_data = uigetdir(default_directory);
-path_to_data = join([path_to_data, '/']);
+[file, path] = uigetfile('*.csv');
 
 % Sample frequency (Hz)
 samp_freq_grf = 1000;
@@ -18,12 +16,11 @@ disp(['Force platform sampling frequency: ', num2str(samp_freq_grf), 'Hz'])
 
 % Read accelerometer data
 disp('Reading accelerometer data')
-acc_file = join([path_to_data, 'Waist__Impact__119 (2017-12-09)-IMU.csv']);
-acc_data = readtable(acc_file, 'HeaderLines', 10);
+acc_data = readtable([path, file], 'HeaderLines', 10);
 warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
 
 % Read all force platform files
-grf_files = dir([path_to_data, '*.txt']);
+grf_files = dir([path, '*.txt']);
 % Get file names
 grf_names = {grf_files.name};
 grf_names = grf_names';
