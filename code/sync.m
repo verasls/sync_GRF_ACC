@@ -19,7 +19,7 @@ disp('Reading accelerometer data')
 acc_data = readtable([path, file], 'HeaderLines', 10);
 warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
 
-% Read all force platform files
+% Get force plates files metadata
 grf_files = dir([path, '*.txt']);
 % Get file names
 grf_names = {grf_files.name};
@@ -73,3 +73,37 @@ acc_tmstp = acc_tmstp(acc_start_idx:acc_end_idx);
 aX = acc_data.AccelerometerX(acc_start_idx:acc_end_idx);
 aY = acc_data.AccelerometerY(acc_start_idx:acc_end_idx);
 aZ = acc_data.AccelerometerZ(acc_start_idx:acc_end_idx);
+
+% Read all force platform files
+disp('Reading force plates data')
+fX = [];
+fY = [];
+fZ = [];
+grf_tmstp = [];
+for i = 1:size(grf_names)
+	grf_filename = [path, char(grf_names(i))];
+	grf_data = dlmread(grf_filename);
+	% Get data from plate 1 (GRF in N)
+	[X, Y, Z] = deal(grf_data(:, 1), grf_data(:, 2), grf_data(:, 3));
+
+	% Resample force plates data to the accelerometer sampling frequency
+	X_resamp = resample(X, samp_freq_acc, samp_freq_grf);
+	Y_resamp = resample(Y, samp_freq_acc, samp_freq_grf);
+	Z_resamp = resample(Z, samp_freq_acc, samp_freq_grf);
+
+	% Create timestamp
+	n_sec = size(grf_data, 1) / samp_freq_grf;
+	t1 = grf_dtms(i);
+	t2 = t1 + seconds(n_sec);
+	tmstp = t1:seconds(1 / samp_freq_acc):t2;
+	tmstp = tmstp';
+	tmstp = tmstp(1:end - 1);
+
+	% Append values to final arrays
+	fX = [fX, X_resamp];
+	fY = [fY, Y_resamp];
+	fZ = [fZ, Z_resamp];
+	grf_tmstp = [grf_tmstp, tmstp];
+end
+samp_freq_grf = samp_freq_acc;
+disp(['Force plate sampling frequency is now set to: ', num2str(samp_freq_grf), 'Hz']);
