@@ -5,19 +5,8 @@ close all
 functions_path = [pwd,'/functions'];
 addpath(functions_path);
 
-% Select data directory through a GUI
+% Select data file through a GUI
 [file, path] = uigetfile('*.csv');
-
-% Sample frequency (Hz)
-samp_freq_grf = 1000;
-samp_freq_acc = 100;
-disp(['Accelerometer sampling frequency: ', num2str(samp_freq_acc), 'Hz'])
-disp(['Force platform sampling frequency: ', num2str(samp_freq_grf), 'Hz'])
-
-% Read accelerometer data
-disp('Reading accelerometer data')
-acc_data = readtable([path, file], 'HeaderLines', 10);
-warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
 
 % Get force plates files metadata
 grf_files = dir([path, '*.txt']);
@@ -49,14 +38,22 @@ trial = str2num(file_ex(end - 8:end - 8));
 body_mass_data = dlmread('../data/body_mass.txt', ',', 1, 0);
 ID_row = find(body_mass_data(:, 1) == ID);
 body_mass = round(body_mass_data(ID_row, 3), 2);
-% Ask user input for body mass
-prompt = {'Enter subject body mass (in kg)'};
-dlgtitle = 'Body mass';
-definput = {num2str(body_mass)};
-opts.Interpreter = 'tex';
-opts.Resize = 'on';
-answer = inputdlg(prompt, dlgtitle, [1 50], definput, opts);
-body_mass = str2num(answer{1});
+
+% Display subject info
+disp(['Selected subject: ID ', num2str(ID)])
+disp(['Subject body mass: ', num2str(body_mass), 'kg'])
+disp(['Selected acceletometer file: ', file])
+
+% Sample frequency (Hz)
+samp_freq_grf = 1000;
+samp_freq_acc = 100;
+disp(['Accelerometer sampling frequency: ', num2str(samp_freq_acc), 'Hz'])
+disp(['Force platform sampling frequency: ', num2str(samp_freq_grf), 'Hz'])
+
+% Read accelerometer data
+disp('Reading accelerometer data')
+acc_data = readtable([path, file], 'HeaderLines', 10);
+warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
 
 % Format accelerometer timestamp variable
 acc_tmstp = acc_data.Timestamp;
@@ -106,4 +103,4 @@ for i = 1:size(grf_names)
 	grf_tmstp = [grf_tmstp, tmstp];
 end
 samp_freq_grf = samp_freq_acc;
-disp(['Force plate sampling frequency is now set to: ', num2str(samp_freq_grf), 'Hz']);
+disp(['Force plate signal was resampled to: ', num2str(samp_freq_grf), 'Hz']);
