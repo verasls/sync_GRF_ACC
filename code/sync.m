@@ -52,11 +52,10 @@ disp(['Force platform sampling frequency: ', num2str(samp_freq_grf), 'Hz'])
 
 % Read accelerometer data
 disp('Reading accelerometer data')
-acc_data = readtable([path, file], 'HeaderLines', 10);
-warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
+acc_data = readtable([path, file], 'HeaderLines', 11, 'ReadVariableNames', false);
 
 % Format accelerometer timestamp variable
-acc_tmstp = acc_data.Timestamp;
+acc_tmstp = table2cell(acc_data(:, 1));
 acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'yyyy-MM-dd''T''HH:mm:ss.S');
 acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'dd-MM-yyyy HH:mm:ss.S');
 
@@ -67,9 +66,9 @@ acc_end_idx = find(acc_tmstp == end_time);
 acc_tmstp = acc_tmstp(acc_start_idx:acc_end_idx);
 
 % Extract accelerometry data per axis
-aX = acc_data.AccelerometerX(acc_start_idx:acc_end_idx);
-aY = acc_data.AccelerometerY(acc_start_idx:acc_end_idx);
-aZ = acc_data.AccelerometerZ(acc_start_idx:acc_end_idx);
+aX = table2array(acc_data(acc_start_idx:acc_end_idx, 2));
+aY = table2array(acc_data(acc_start_idx:acc_end_idx, 3));
+aZ = table2array(acc_data(acc_start_idx:acc_end_idx, 4));
 
 % Read all force platform files
 disp('Reading force plates data')
