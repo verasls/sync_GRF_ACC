@@ -56,8 +56,12 @@ acc_data = readtable([path, file], 'HeaderLines', 11, 'ReadVariableNames', false
 
 % Format accelerometer timestamp variable
 acc_tmstp = table2cell(acc_data(:, 1));
-acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'yyyy-MM-dd''T''HH:mm:ss.S');
-acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'dd-MM-yyyy HH:mm:ss.S');
+if contains(file, 'RAW')
+	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'dd-MM-yyyy HH:mm:ss.S');
+elseif contains(file, 'IMU')
+	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'yyyy-MM-dd''T''HH:mm:ss.S');
+	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'dd-MM-yyyy HH:mm:ss.S');
+end
 
 % Get accelerometer data start and end time indices
 acc_start_idx = find(acc_tmstp == start_time);
