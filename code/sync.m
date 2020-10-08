@@ -25,7 +25,8 @@ grf_dtms = grf_dtms';
 % Remove offset and walking/running files
 grf_dtms = grf_dtms(offset_idx);
 grf_dtms = grf_dtms(run_idx);
-grf_dtms = datetime(grf_dtms, 'Timezone', 'UTC', 'Format', 'dd-MMM-yyyy HH:mm:ss');
+grf_dtms = datetime(grf_dtms, 'Timezone', 'UTC', ...
+		    'Format', 'dd-MMM-yyyy HH:mm:ss');
 
 % Get start and end times based on the times found in the GRF files
 start_time = min(grf_dtms) - minutes(5);
@@ -52,15 +53,19 @@ disp(['Force platform sampling frequency: ', num2str(samp_freq_grf), 'Hz'])
 
 % Read accelerometer data
 disp('Reading accelerometer data')
-acc_data = readtable([path, file], 'HeaderLines', 11, 'ReadVariableNames', false);
+acc_data = readtable([path, file], 'HeaderLines', 11, ...
+		     'ReadVariableNames', false);
 
 % Format accelerometer timestamp variable
 acc_tmstp = table2cell(acc_data(:, 1));
 if contains(file, 'RAW')
-	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'dd-MM-yyyy HH:mm:ss.S');
+	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', ...
+			     'Format', 'dd-MM-yyyy HH:mm:ss.S');
 elseif contains(file, 'IMU')
-	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'yyyy-MM-dd''T''HH:mm:ss.S');
-	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', 'Format', 'dd-MM-yyyy HH:mm:ss.S');
+	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', ...
+			     'Format', 'yyyy-MM-dd''T''HH:mm:ss.S');
+	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', ...
+			     'Format', 'dd-MM-yyyy HH:mm:ss.S');
 end
 
 % Get accelerometer data start and end time indices
