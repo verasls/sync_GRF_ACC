@@ -15,6 +15,7 @@ grf_names = {grf_files.name};
 grf_names = grf_names';
 % Remove offset file
 offset_idx = cellfun('isempty', regexp(grf_names, '_vazio_'));
+offset_file = grf_names(~offset_idx);
 grf_names = grf_names(offset_idx);
 % Remove walking/running files
 run_idx = cellfun('isempty', regexp(grf_names, 'km_'));
@@ -111,7 +112,7 @@ for i = 1:size(grf_names)
 	grf_tmstp = [grf_tmstp, tmstp];
 end
 samp_freq_grf = samp_freq_acc;
-disp(['Force plate signal was resampled to: ', num2str(samp_freq_grf), 'Hz']);
+disp(['Ground reaction force signal was resampled to: ', num2str(samp_freq_grf), 'Hz']);
 
 % Filter accelerometer and force plates signals
 % Create the lowpass filter
@@ -124,16 +125,37 @@ Wn = cutoff / fnyq;
 [sos, g] = zp2sos(z, p, k);
 
 disp('Filtering acceleration signal')
-aX = filtfilt(sos, g, aX);
-aY = filtfilt(sos, g, aY);
-aZ = filtfilt(sos, g, aZ);
+aX_filt = filtfilt(sos, g, aX);
+aY_filt = filtfilt(sos, g, aY);
+aZ_filt = filtfilt(sos, g, aZ);
 
-disp('Filtering force plates signal')
-fX = filtfilt(sos, g, fX);
-fY = filtfilt(sos, g, fY);
-fZ = filtfilt(sos, g, fZ);
+disp('Filtering ground reaction force signal')
+fX_filt = filtfilt(sos, g, fX);
+fY_filt = filtfilt(sos, g, fY);
+fZ_filt = filtfilt(sos, g, fZ);
 
 % Compute resultant vectors
 disp('Computing resultant vectors')
 aR = sqrt(aX.^2 + aY.^2 + aZ.^2);
 fR = sqrt(fX.^2 + fY.^2 + fZ.^2);
+aR_filt = sqrt(aX_filt.^2 + aY_filt.^2 + aZ_filt.^2);
+fR_filt = sqrt(fX_filt.^2 + fY_filt.^2 + fZ_filt.^2);
+
+% Plot the filtered and unfiltered signals
+figure('NAME', 'Filtered and unfiltered signals')
+set(gcf, 'Position', get(0, 'Screensize'));
+subplot(2, 1, 1)
+plot(acc_tmstp, aR)
+hold on
+plot(acc_tmstp, aR_filt)
+ylabel('Resultant acceleration (g)', 'FontSize', 14)
+xlabel('Timestamp', 'FontSize', 14)
+title('Acceleration signal', 'FontSize', 18)
+subplot(2, 1, 2)
+plot(grf_tmstp, fR, '-', 'color', [0.0000 0.4470 0.7419])
+hold on
+plot(grf_tmstp, fR_filt, '-', 'color', [0.8500 0.3250 0.0980])
+ylabel('Resultant ground reaction force (N)', 'FontSize', 14)
+xlabel('Timestamp', 'FontSize', 14)
+title('Ground reaction force signal', 'FontSize', 18)
+suptitle('Filtered signal (orange lines) and unfiltered signal (blue lines)')
