@@ -112,3 +112,28 @@ for i = 1:size(grf_names)
 end
 samp_freq_grf = samp_freq_acc;
 disp(['Force plate signal was resampled to: ', num2str(samp_freq_grf), 'Hz']);
+
+% Filter accelerometer and force plates signals
+% Create the lowpass filter
+n = 4;  % Filter order
+cutoff = 20;  % Cut-off frequency (Hz)
+fnyq = samp_freq_acc / 2;  % Nyquist frequency
+Wn = cutoff / fnyq;
+
+[z, p, k] = butter(n, Wn, 'low');
+[sos, g] = zp2sos(z, p, k);
+
+disp('Filtering acceleration signal')
+aX = filtfilt(sos, g, aX);
+aY = filtfilt(sos, g, aY);
+aZ = filtfilt(sos, g, aZ);
+
+disp('Filtering force plates signal')
+fX = filtfilt(sos, g, fX);
+fY = filtfilt(sos, g, fY);
+fZ = filtfilt(sos, g, fZ);
+
+% Compute resultant vectors
+disp('Computing resultant vectors')
+aR = sqrt(aX.^2 + aY.^2 + aZ.^2);
+fR = sqrt(fX.^2 + fY.^2 + fZ.^2);
