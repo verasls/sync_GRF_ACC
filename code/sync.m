@@ -82,6 +82,15 @@ aZ = table2array(acc_data(acc_start_idx:acc_end_idx, 4));
 
 % Read all force platform files
 disp('Reading force plates data')
+if isempty(offset_file)
+	disp('No force plates offset file detected; offset not removed')
+else
+	disp('Reading offset file')
+	offset_data = dlmread(char(join([path, offset_file], '')));
+	[oX, oY, oZ] = deal(offset_data(:, 1), offset_data(:, 2), ...
+			    offset_data(:, 3));
+end
+
 fX = [];
 fY = [];
 fZ = [];
@@ -91,6 +100,9 @@ for i = 1:size(grf_names)
 	grf_data = dlmread(grf_filename);
 	% Get data from plate 1 (GRF in N)
 	[X, Y, Z] = deal(grf_data(:, 1), grf_data(:, 2), grf_data(:, 3));
+	X = remove_offset(X, oX, samp_freq_grf);
+	Y = remove_offset(Y, oY, samp_freq_grf);
+	Z = remove_offset(Z, oZ, samp_freq_grf);
 
 	% Resample force plates data to the accelerometer sampling frequency
 	X_resamp = resample(X, samp_freq_acc, samp_freq_grf);
