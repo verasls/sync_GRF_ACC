@@ -9,7 +9,6 @@ function corrected_vector = remove_offset(original_vector, offset_vector, samp_f
 
 	% Get offset to be removed and correct original file
 	offset = mean(offset_vector);
-	disp(['The offset was ' num2str(offset) 'N']);
 
 	corrected_vector = original_vector - offset;
 end
