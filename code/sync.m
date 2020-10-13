@@ -168,3 +168,134 @@ ylabel('Resultant ground reaction force (N)', 'FontSize', 14)
 xlabel('Timestamp', 'FontSize', 14)
 title('Ground reaction force signal', 'FontSize', 18)
 suptitle('Filtered signal (orange lines) and unfiltered signal (blue lines)')
+
+% Start synchronization process
+
+% Select only one force plate file to test the process
+grf_data = fR_filt(:, 1);
+grf_time = grf_tmstp(:, 1);
+
+% Crop accelerometer data around the time of the force plate data
+% Get start and end time indices
+start_time = min(grf_time) - minutes(5);
+end_time = max(grf_time) + minutes(5);
+start_idx = find(acc_tmstp == start_time);
+end_idx = find(acc_tmstp == end_time);
+% Crop accelerometer timestamp and filtered resultant vector
+acc_data = aR_filt(start_idx:end_idx);
+acc_time = acc_tmstp(start_idx:end_idx);
+
+% Normalize
+grf_data = ((grf_data - mean(grf_data)) / std(grf_data));
+acc_data = ((acc_data - mean(acc_data)) / std(acc_data));
+
+% Plot ground reaction force and acceleration signals to synchronize
+fig10 = figure('NAME', 'Plot slider');
+set(gcf, 'Position', get(0, 'Screensize'));
+plot(acc_time, acc_data)
+xticks(acc_time(1):minutes(1):acc_time(end));
+hold on
+fig11 = plot(grf_time, grf_data);
+hold off
+title({'Adjust the plots using the buttons bellow', ...
+       'Press "Continue" when done'})
+legend('Acceleration', 'Ground reaction force')
+ax = gca;
+ax.FontSize = 15;
+
+adjusted_time = plot_slider(fig10, fig11);
+lag = adjusted_time - min(grf_time);
+
+% Make a new plot with the adjusted_time
+% Adjust the grf timestamp
+grf_time = grf_time + lag;
+% Adjust the acc timestamp
+start_time = min(grf_time) - minutes(0.5);
+end_time = max(grf_time) + minutes(0.5);
+start_idx = find(acc_time == start_time);
+end_idx = find(acc_time == end_time);
+% Crop accelerometer timestamp and filtered resultant vector
+acc_data = acc_data(start_idx:end_idx);
+acc_time = acc_time(start_idx:end_idx);
+
+figure('NAME', 'Time-adjusted signals')
+set(gcf, 'Position', get(0, 'Screensize'));
+plot(acc_time, acc_data)
+hold on
+plot(grf_time, grf_data)
+legend('Acceleration', 'Ground reaction force')
+ax = gca;
+ax.FontSize = 15;
+
+
+% Find peaks in the acceleration signal
+min_height = 4;
+min_dist = 3;
+[pks_acc, pks_acc_idx] = find_signal_peaks(min_height, min_dist, ...
+					   samp_freq_acc, acc_data);
+pks_acc_time = acc_time(pks_acc_idx);
+
+% Plot the acceleration peaks
+figure('NAME', 'Define region of interest')
+set(gcf, 'Position', get(0, 'Screensize'));
+plot(acc_time, acc_data)
+hold on
+plot(grf_time, grf_data)
+legend('Acceleration', 'Ground reaction force')
+ax = gca;
+ax.FontSize = 15;
+plot(pks_acc_time, pks_acc, 'rx', 'MarkerSize', 10, ...
+     'DisplayName', 'Acceleration peaks')
+
+
+% Select region of interest
+y_lim = get(gca, 'YLim');
+% Beginning
+title('Click on the BEGINNING of the region of interest')
+[x_beggining, y] = ginput(1);
+x_beggining = num2ruler(x_beggining, ax.XAxis);
+line([x_beggining, x_beggining], y_lim, 'Color', 'k', 'LineWidth', 2, ...
+     'HandleVisibility', 'off')
+% End
+title('Click on the END of the region of interest')
+[x_end, y] = ginput(1);
+x_end = num2ruler(x_end, ax.XAxis);
+line([x_end, x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
+     'HandleVisibility', 'off')
+
+% Remove the peaks out of the region of interest
+pks_keep = pks_acc_time > x_beggining & pks_acc_time < x_end;
+pks_acc = pks_acc(pks_keep);
+pks_acc_time = pks_acc_time(pks_keep);
+pks_acc_idx = pks_acc_idx(pks_keep);
+
+figure('NAME', 'Peaks in the region of interest')
+set(gcf, 'Position', get(0, 'Screensize'));
+plot(acc_time, acc_data)
+hold on
+plot(grf_time, grf_data)
+plot(pks_acc_time, pks_acc, 'rx', 'MarkerSize', 10)
+line([x_beggining, x_beggining], y_lim, 'Color', 'k', 'LineWidth', 2)
+line([x_end, x_end], y_lim, 'Color', 'k', 'LineWidth', 2)
+legend('Acceleration', 'Ground reaction force', 'Acceleration peaks')
+ax = gca;
+ax.FontSize = 15;
+
+% Find peaks in the ground reaction force signal
+pks_grf = zeros(size(pks_acc));
+pks_grf_idx = zeros(size(pks_acc));
+for i = 1:length(pks_acc)
+	idx_min = pks_acc_time(i) - seconds(min_dist);
+	idx_max = pks_acc_time(i) + seconds(min_dist);
+
+	idx_min = find(grf_time == idx_min);
+	idx_max = find(grf_time == idx_max);
+	
+	pks_grf(i) = max(grf_data(idx_min:idx_max));
+	pks_grf_idx(i) = find(grf_data(idx_min:idx_max) == pks_grf(i), 1, ...
+	                      'first') + idx_min - 1;
+end
+pks_grf_time = grf_time(pks_grf_idx);
+
+plot(pks_grf_time, pks_grf, 'gx', 'MarkerSize', 10, ...
+     'DisplayName', 'Ground reaction force peaks')
