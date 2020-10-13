@@ -10,24 +10,21 @@ addpath(functions_path);
 
 % Get force plates files metadata
 grf_files = dir([path, '*.txt']);
-% Get file names
-grf_names = {grf_files.name};
-grf_names = grf_names';
+% Put file properties into a cell array
+grf_files = struct2cell(grf_files)';
 % Remove offset file
-offset_idx = cellfun('isempty', regexp(grf_names, '_vazio_'));
-offset_file = grf_names(~offset_idx);
-grf_names = grf_names(offset_idx);
+offset_idx = cellfun('isempty', regexp(grf_files(:, 1), '_vazio_'));
+offset_file = grf_files(~offset_idx, 1);
+grf_files = grf_files(offset_idx, :);
 % Remove walking/running files
-run_idx = cellfun('isempty', regexp(grf_names, 'km_'));
-grf_names = grf_names(run_idx);
+run_idx = cellfun('isempty', regexp(grf_files(:, 1), 'km_'));
+grf_files = grf_files(run_idx, :);
 % Get last modification datetimes
-grf_dtms = {grf_files.date};
-grf_dtms = grf_dtms';
-% Remove offset and walking/running files
-grf_dtms = grf_dtms(offset_idx);
-grf_dtms = grf_dtms(run_idx);
-grf_dtms = datetime(grf_dtms, 'Timezone', 'UTC', ...
+grf_dtms = datetime(grf_files(:, 3), 'Timezone', 'UTC', ...
 		    'Format', 'dd-MMM-yyyy HH:mm:ss');
+% Sort array by last modification time and get filenames
+grf_files = sortrows(grf_files, 3);
+grf_names = grf_files(:, 1);
 
 % Get start and end times based on the times found in the GRF files
 start_time = min(grf_dtms) - minutes(5);
