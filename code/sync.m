@@ -23,10 +23,10 @@ grf_files = grf_files(offset_idx, :);
 run_idx = cellfun('isempty', regexp(grf_files(:, 1), 'km_'));
 grf_files = grf_files(run_idx, :);
 % Get last modification datetimes
+grf_files = sortrows(grf_files, 3);
 grf_dtms = datetime(grf_files(:, 3), 'Timezone', 'UTC', ...
 		    'Format', 'dd-MMM-yyyy HH:mm:ss');
 % Sort array by last modification time and get filenames
-grf_files = sortrows(grf_files, 3);
 grf_names = grf_files(:, 1);
 
 % Get start and end times based on the times found in the GRF files
@@ -183,8 +183,16 @@ for i = 1:length(grf_names)
 	% Get start and end time indices
 	start_time = min(grf_time) - minutes(5);
 	end_time = max(grf_time) + minutes(5);
-	start_idx = find(acc_tmstp == start_time);
-	end_idx = find(acc_tmstp == end_time);
+	if start_time < min(acc_tmstp)
+		start_idx = 1;
+	else	
+		start_idx = find(acc_tmstp == start_time);
+	end
+	if end_time > max(acc_tmstp)
+		end_idx = length(acc_tmstp);
+	else
+		end_idx = find(acc_tmstp == end_time);
+	end
 	% Crop accelerometer timestamp and filtered resultant vector
 	acc_data = aR_filt(start_idx:end_idx);
 	acc_time = acc_tmstp(start_idx:end_idx);
