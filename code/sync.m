@@ -351,6 +351,19 @@ for i = 1:length(grf_names)
 	disp(['Average ground reaction force peak (BW): ', ...
 	     num2str(round(avg_pks_grf_BW, 1))])
 	disp(' ')
+
+	% Get and write synchronization values
+	sync_data_tmp = table({filename}, adjusted_time, x_beggining, x_end, ...
+			      {pks_acc_time}, {pks_grf_time});
+	sync_data_tmp.Properties.VariableNames{1} = 'filename';
+	sync_data_tmp.Properties.VariableNames{5} = 'pks_acc_time';
+	sync_data_tmp.Properties.VariableNames{6} = 'pks_grf_time';
+
+	if exist('sync_data', 'var')
+		sync_data = [sync_data; sync_data_tmp];
+	else
+		sync_data = sync_data_tmp;
+	end
 	
 
 	pause(5)
