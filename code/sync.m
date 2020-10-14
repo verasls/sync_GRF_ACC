@@ -5,6 +5,9 @@ close all
 functions_path = [pwd,'/functions'];
 addpath(functions_path);
 
+% Acceleration of gravity
+G = 9.81;
+
 % Select data file through a GUI
 [file, path] = uigetfile('*.csv');
 
@@ -171,6 +174,7 @@ title('Ground reaction force signal', 'FontSize', 18)
 suptitle('Filtered signal (orange lines) and unfiltered signal (blue lines)')
 
 % Start synchronization process
+disp(' ')
 for i = 1:length(grf_names)
 	grf_data = fR_filt(:, i);
 	grf_time = grf_tmstp(:, i);
@@ -186,11 +190,16 @@ for i = 1:length(grf_names)
 	acc_time = acc_tmstp(start_idx:end_idx);
 
 	% Normalize
-	grf_data = ((grf_data - mean(grf_data)) / std(grf_data));
-	acc_data = ((acc_data - mean(acc_data)) / std(acc_data));
+	grf_raw_mean = mean(grf_data);
+	grf_raw_stdv = std(grf_data);
+	grf_data = ((grf_data - grf_raw_mean) / grf_raw_stdv);
+	acc_raw_mean = mean(acc_data);
+	acc_raw_stdv = std(acc_data);
+	acc_data = ((acc_data - acc_raw_mean) / acc_raw_stdv);
 
 	% Plot ground reaction force and acceleration signals to synchronize
-	fig10 = figure('NAME', ['Plot slider (', char(grf_names(i)), ')']);
+	filename = char(grf_names(i));	
+	fig10 = figure('NAME', ['Plot slider (', filename, ')']);
 	set(gcf, 'Position', get(0, 'Screensize'));
 	plot(acc_time, acc_data)
 	xticks(acc_time(1):minutes(1):acc_time(end));
@@ -218,7 +227,7 @@ for i = 1:length(grf_names)
 	acc_data = acc_data(start_idx:end_idx);
 	acc_time = acc_time(start_idx:end_idx);
 
-	figure('NAME', ['Time-adjusted signals (', char(grf_names(i)), ')'])
+	figure('NAME', ['Time-adjusted signals (', filename, ')'])
 	set(gcf, 'Position', get(0, 'Screensize'));
 	plot(acc_time, acc_data)
 	hold on
@@ -236,7 +245,7 @@ for i = 1:length(grf_names)
 	pks_acc_time = acc_time(pks_acc_idx);
 
 	% Plot the acceleration peaks
-	figure('NAME', ['Define region of interest (', char(grf_names(i)), ')'])
+	figure('NAME', ['Define region of interest (', filename, ')'])
 	set(gcf, 'Position', get(0, 'Screensize'));
 	plot(acc_time, acc_data)
 	hold on
@@ -269,8 +278,7 @@ for i = 1:length(grf_names)
 	pks_acc_time = pks_acc_time(pks_keep);
 	pks_acc_idx = pks_acc_idx(pks_keep);
 
-	figure('NAME', ['Peaks in the region of interest (', ...
-	       char(grf_names(i)), ')'])
+	figure('NAME', ['Peaks in the region of interest (', filename, ')'])
 	set(gcf, 'Position', get(0, 'Screensize'));
 	plot(acc_time, acc_data)
 	hold on
@@ -294,12 +302,48 @@ for i = 1:length(grf_names)
 
 		pks_grf(i) = max(grf_data(idx_min:idx_max));
 		pks_grf_idx(i) = find(grf_data(idx_min:idx_max) == pks_grf(i), ...
-		                      1, 'first') + idx_min - 1;
+				      1, 'first') + idx_min - 1;
 	end
 	pks_grf_time = grf_time(pks_grf_idx);
 
 	plot(pks_grf_time, pks_grf, 'gx', 'MarkerSize', 10, ...
 	     'DisplayName', 'Ground reaction force peaks')
+	
+	% Get values
+	if ~isempty(regexp(filename, '\d_\d*cm'))
+		jump_type = 'drop jumps';
+	elseif ~isempty(regexp(filename, '_Box_Jumps_'))
+		jump_type = 'box jumps';
+	elseif ~isempty(regexp(filename, '\d_Jumps'))
+		jump_type = 'continuous jumps';
+	end
+
+	jump_height = char(regexp(filename, '.\dcm', 'Match'));
+	jump_height = str2double(regexp(jump_height, '\d*', 'Match'));
+
+	n_peaks = length(pks_grf);
+	avg_pks_acc_g = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
+	avg_pks_acc_ms2 = avg_pks_acc_g * G;
+	avg_pks_grf_N = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
+	avg_pks_grf_BW = avg_pks_grf_N / (body_mass * G);
+
+	disp('----------------------------------------')
+	disp(' ')
+	disp(['File: ', filename])
+	disp(['Jump type: ', jump_type])
+	disp(['Jump height: ', num2str(jump_height), 'cm'])
+	disp('Resultant vector')
+	disp(['Number of peaks: ', num2str(n_peaks)])
+	disp(['Average acceleration peak (m/s2): ', ...
+	     num2str(round(avg_pks_acc_ms2, 1))])
+	disp(['Average acceleration peak (g): ', ...
+	     num2str(round(avg_pks_acc_g, 1))])
+	disp(['Average ground reaction force peak (N): ', ...
+	     num2str(round(avg_pks_grf_N, 1))])
+	disp(['Average ground reaction force peak (BW): ', ...
+	     num2str(round(avg_pks_grf_BW, 1))])
+	disp(' ')
+	
 
 	pause(5)
 end
