@@ -173,9 +173,9 @@ xlabel('Timestamp', 'FontSize', 14)
 title('Ground reaction force signal', 'FontSize', 18)
 suptitle('Filtered signal (orange lines) and unfiltered signal (blue lines)')
 
-% Start synchronization process
+% Start synchronization process for the resultant vector
 disp(' ')
-for i = 1:length(grf_names)
+for i = 1:2%length(grf_names)
 	grf_data = fR_filt(:, i);
 	grf_time = grf_tmstp(:, i);
 
@@ -359,10 +359,10 @@ for i = 1:length(grf_names)
 	sync_data_tmp.Properties.VariableNames{5} = 'pks_acc_time';
 	sync_data_tmp.Properties.VariableNames{6} = 'pks_grf_time';
 
-	if exist('sync_data', 'var')
-		sync_data = [sync_data; sync_data_tmp];
+	if exist('sync_data_resultant', 'var')
+		sync_data_resultant = [sync_data_resultant; sync_data_tmp];
 	else
-		sync_data = sync_data_tmp;
+		sync_data_resultant = sync_data_tmp;
 	end
 	
 
@@ -370,65 +370,27 @@ for i = 1:length(grf_names)
 end
 
 % Save sync data into a .mat file
-% Rename object based on the selected accelerometer file
 if contains(file, 'ankle', 'IgnoreCase', true)
 	if contains(file, 'imu', 'IgnoreCase', true)
-		sync_data_ankle_imu_resultant = sync_data;
 		sync_filename = [path, 'sync_data_ankle_imu.mat'];
-		if exist(sync_filename)
-			save(sync_filename, 'sync_data_ankle_imu_resultant', ...
-			     '-append')
-		else
-			save(sync_filename, 'sync_data_ankle_imu_resultant')
-		end
 	elseif contains(file, 'raw', 'IgnoreCase', true)
-		sync_data_ankle_raw_resultant = sync_data;
 		sync_filename = [path, 'sync_data_ankle_raw.mat'];
-		if exist(sync_filename)
-			save(sync_filename, 'sync_data_ankle_raw_resultant', ...
-			     '-append')
-		else
-			save(sync_filename, 'sync_data_ankle_raw_resultant')
-		end
 	end
 elseif contains(file, 'back', 'IgnoreCase', true)
 	if contains(file, 'imu', 'IgnoreCase', true)
-		sync_data_back_imu_resultant = sync_data;
 		sync_filename = [path, 'sync_data_back_imu.mat'];
-		if exist(sync_filename)
-			save(sync_filename, 'sync_data_back_imu_resultant', ...
-			     '-append')
-		else
-			save(sync_filename, 'sync_data_back_imu_resultant')
-		end
 	elseif contains(file, 'raw', 'IgnoreCase', true)
-		sync_data_back_raw_resultant = sync_data;
 		sync_filename = [path, 'sync_data_back_raw.mat'];
-		if exist(sync_filename)
-			save(sync_filename, 'sync_data_back_raw_resultant', ...
-			     '-append')
-		else
-			save(sync_filename, 'sync_data_back_raw_resultant')
-		end
 	end
 elseif contains(file, 'waist', 'IgnoreCase', true)
 	if contains(file, 'imu', 'IgnoreCase', true)
-		sync_data_waist_imu_resultant = sync_data;
 		sync_filename = [path, 'sync_data_waist_imu.mat'];
-		if exist(sync_filename)
-			save(sync_filename, ...
-			     'sync_data_waist_imu_resultant', '-append')
-		else
-			save(sync_filename, 'sync_data_waist_imu_resultant')
-		end
 	elseif contains(file, 'raw', 'IgnoreCase', true)
-		sync_data_waist_raw_resultant = sync_data;
 		sync_filename = [path, 'sync_data_waist_raw.mat'];
-		if exist(sync_filename)
-			save(sync_filename, ...
-			     'sync_data_waist_raw_resultant', '-append')
-		else
-			save(sync_filename, 'sync_data_waist_raw_resultant')
-		end
 	end
+end
+if exist(sync_filename)
+	save(sync_filename, 'sync_data_resultant', '-append')
+else
+	save(sync_filename, 'sync_data_resultant')
 end
