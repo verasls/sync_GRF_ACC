@@ -207,7 +207,7 @@ for i = 1:2%length(grf_names)
 
 	% Plot ground reaction force and acceleration signals to synchronize
 	filename = char(grf_names(i));	
-	fig10 = figure('NAME', ['Plot slider (', filename, ')']);
+	fig10 = figure('NAME', ['Plot slider (', filename, ') - Resultant vector']);
 	set(gcf, 'Position', get(0, 'Screensize'));
 	plot(acc_time, acc_data)
 	xticks(acc_time(1):minutes(1):acc_time(end));
@@ -235,7 +235,8 @@ for i = 1:2%length(grf_names)
 	acc_data = acc_data(start_idx:end_idx);
 	acc_time = acc_time(start_idx:end_idx);
 
-	figure('NAME', ['Time-adjusted signals (', filename, ')'])
+	figure('NAME', ['Time-adjusted signals (', filename, ...
+	       ') - Resultant vector'])
 	set(gcf, 'Position', get(0, 'Screensize'));
 	plot(acc_time, acc_data)
 	hold on
@@ -253,7 +254,8 @@ for i = 1:2%length(grf_names)
 	pks_acc_time = acc_time(pks_acc_idx);
 
 	% Plot the acceleration peaks
-	figure('NAME', ['Define region of interest (', filename, ')'])
+	figure('NAME', ['Define region of interest (', filename, ...
+	       ') - Resultant vector'])
 	set(gcf, 'Position', get(0, 'Screensize'));
 	plot(acc_time, acc_data)
 	hold on
@@ -286,7 +288,8 @@ for i = 1:2%length(grf_names)
 	pks_acc_time = pks_acc_time(pks_keep);
 	pks_acc_idx = pks_acc_idx(pks_keep);
 
-	figure('NAME', ['Peaks in the region of interest (', filename, ')'])
+	figure('NAME', ['Peaks in the region of interest (', filename, ...
+	       ') - Resultant vector'])
 	set(gcf, 'Position', get(0, 'Screensize'));
 	plot(acc_time, acc_data)
 	hold on
