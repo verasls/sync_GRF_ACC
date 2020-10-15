@@ -368,3 +368,67 @@ for i = 1:length(grf_names)
 
 	pause(5)
 end
+
+% Save sync data into a .mat file
+% Rename object based on the selected accelerometer file
+if contains(file, 'ankle', 'IgnoreCase', true)
+	if contains(file, 'imu', 'IgnoreCase', true)
+		sync_data_ankle_imu_resultant = sync_data;
+		sync_filename = [path, 'sync_data_ankle_imu.mat'];
+		if exist(sync_filename)
+			save(sync_filename, 'sync_data_ankle_imu_resultant', ...
+			     '-append')
+		else
+			save(sync_filename, 'sync_data_ankle_imu_resultant')
+		end
+	elseif contains(file, 'raw', 'IgnoreCase', true)
+		sync_data_ankle_raw_resultant = sync_data;
+		sync_filename = [path, 'sync_data_ankle_raw.mat'];
+		if exist(sync_filename)
+			save(sync_filename, 'sync_data_ankle_raw_resultant', ...
+			     '-append')
+		else
+			save(sync_filename, 'sync_data_ankle_raw_resultant')
+		end
+	end
+elseif contains(file, 'back', 'IgnoreCase', true)
+	if contains(file, 'imu', 'IgnoreCase', true)
+		sync_data_back_imu_resultant = sync_data;
+		sync_filename = [path, 'sync_data_back_imu.mat'];
+		if exist(sync_filename)
+			save(sync_filename, 'sync_data_back_imu_resultant', ...
+			     '-append')
+		else
+			save(sync_filename, 'sync_data_back_imu_resultant')
+		end
+	elseif contains(file, 'raw', 'IgnoreCase', true)
+		sync_data_back_raw_resultant = sync_data;
+		sync_filename = [path, 'sync_data_back_raw.mat'];
+		if exist(sync_filename)
+			save(sync_filename, 'sync_data_back_raw_resultant', ...
+			     '-append')
+		else
+			save(sync_filename, 'sync_data_back_raw_resultant')
+		end
+	end
+elseif contains(file, 'waist', 'IgnoreCase', true)
+	if contains(file, 'imu', 'IgnoreCase', true)
+		sync_data_waist_imu_resultant = sync_data;
+		sync_filename = [path, 'sync_data_waist_imu.mat'];
+		if exist(sync_filename)
+			save(sync_filename, ...
+			     'sync_data_back_waist_imu_resultant', '-append')
+		else
+			save(sync_filename, 'sync_data_back_waist_imu_resultant')
+		end
+	elseif contains(file, 'raw', 'IgnoreCase', true)
+		sync_data_waist_raw_resultant = sync_data;
+		sync_filename = [path, 'sync_data_waist_raw.mat'];
+		if exist(sync_filename)
+			save(sync_filename, ...
+			     'sync_data_back_waist_raw_resultant', '-append')
+		else
+			save(sync_filename, 'sync_data_back_waist_raw_resultant')
+		end
+	end
+end
