@@ -356,7 +356,7 @@ for i = 1:2%length(grf_names)
 	disp(' ')
 
 	% Get and write synchronization values
-	sync_data_tmp = table({filename}, adjusted_time, x_beggining, x_end, ...
+	sync_data_tmp = table({filename}, lag, x_beggining, x_end, ...
 			      {pks_acc_time}, {pks_grf_time});
 	sync_data_tmp.Properties.VariableNames{1} = 'filename';
 	sync_data_tmp.Properties.VariableNames{5} = 'pks_acc_time';
