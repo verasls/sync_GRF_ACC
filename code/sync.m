@@ -417,18 +417,18 @@ elseif contains(file, 'waist', 'IgnoreCase', true)
 		sync_filename = [path, 'sync_data_waist_imu.mat'];
 		if exist(sync_filename)
 			save(sync_filename, ...
-			     'sync_data_back_waist_imu_resultant', '-append')
+			     'sync_data_waist_imu_resultant', '-append')
 		else
-			save(sync_filename, 'sync_data_back_waist_imu_resultant')
+			save(sync_filename, 'sync_data_waist_imu_resultant')
 		end
 	elseif contains(file, 'raw', 'IgnoreCase', true)
 		sync_data_waist_raw_resultant = sync_data;
 		sync_filename = [path, 'sync_data_waist_raw.mat'];
 		if exist(sync_filename)
 			save(sync_filename, ...
-			     'sync_data_back_waist_raw_resultant', '-append')
+			     'sync_data_waist_raw_resultant', '-append')
 		else
-			save(sync_filename, 'sync_data_back_waist_raw_resultant')
+			save(sync_filename, 'sync_data_waist_raw_resultant')
 		end
 	end
 end
