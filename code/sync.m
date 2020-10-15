@@ -11,6 +11,14 @@ G = 9.81;
 % Select data file through a GUI
 [file, path] = uigetfile('*.csv');
 
+% Get selected accelerometer placement
+if regexpi(file, 'ankle')
+	placement = 'ankle';
+elseif regexpi(file, 'back')
+	placement = 'back';
+elseif regexpi(file, 'waist')
+	placement = 'waist';
+end
 % Get force plates files metadata
 grf_files = dir([path, '*.txt']);
 % Put file properties into a cell array
@@ -177,9 +185,26 @@ disp(' ')
 disp('----------------------------------------')
 disp('------------RESULTANT VECTOR------------')
 disp('----------------------------------------')
+
+% Check if there is a sync_data .mat file available and ask to use it
+if ~isempty(dir([path, 'sync_data_', placement, '*.mat']))
+	to_load = dir([path, 'sync_data_', placement, '*.mat']);
+	to_load = to_load.name;
+end
+
+answer = questdlg(['A previous synchronization was found for the selected', ...
+                  ' accelerometer placement. Do you want to use it?'], ...
+		  '', 'No', 'Yes', 'Yes');
+
+if strcmp(answer, 'Yes')
+	load([path, to_load])
+	pre_lag = sync_data_resultant.lag;
+end
+
 for i = 1:2%length(grf_names)
 	grf_data = fR_filt(:, i);
 	grf_time = grf_tmstp(:, i);
+	grf_time = grf_time + pre_lag(i);
 
 	% Crop accelerometer data around the time of the force plate data
 	% Get start and end time indices
@@ -221,7 +246,11 @@ for i = 1:2%length(grf_names)
 	ax = gca;
 	ax.FontSize = 15;
 
-	adjusted_time = plot_slider(fig10, fig11);
+	if strcmp(answer, 'Yes')
+		adjusted_time = min(grf_time);
+	elseif strcmp(answer, 'No')
+		adjusted_time = plot_slider(fig10, fig11);
+	end
 	lag = adjusted_time - min(grf_time);
 
 	% Make a new plot with the adjusted_time
@@ -270,16 +299,31 @@ for i = 1:2%length(grf_names)
 
 	% Select region of interest
 	y_lim = get(gca, 'YLim');
+	% Plot the pre-defined regions of interest
+	pre_x_beginning = sync_data_resultant.x_beginning(i);
+	line([pre_x_beginning, pre_x_beginning], y_lim, 'Color', 'k', ...
+	     'LineWidth', 2, 'HandleVisibility', 'off')
+	pre_x_end = sync_data_resultant.x_end(i);
+	line([pre_x_end, pre_x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
+	     'HandleVisibility', 'off')
 	% Beginning
 	title('Click on the BEGINNING of the region of interest')
-	[x_beginning, y] = ginput(1);
-	x_beginning = num2ruler(x_beginning, ax.XAxis);
+	if strcmp(answer, 'Yes')
+		x_beginning = pre_x_beginning;
+	elseif strcmp(answer, 'No')
+		[x_beginning, y] = ginput(1);
+		x_beginning = num2ruler(x_beginning, ax.XAxis);
+	end
 	line([x_beginning, x_beginning], y_lim, 'Color', 'k', ...
 	     'LineWidth', 2, 'HandleVisibility', 'off')
 	% End
 	title('Click on the END of the region of interest')
-	[x_end, y] = ginput(1);
-	x_end = num2ruler(x_end, ax.XAxis);
+	if strcmp(answer, 'Yes')
+		x_end = pre_x_end;
+	elseif strcmp(answer, 'No')
+		[x_end, y] = ginput(1);
+		x_end = num2ruler(x_end, ax.XAxis);
+	end
 	line([x_end, x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
 	     'HandleVisibility', 'off')
 
@@ -369,8 +413,9 @@ for i = 1:2%length(grf_names)
 		sync_data_resultant = sync_data_tmp;
 	end
 	
-
-	pause(5)
+	if strcmp(answer, 'No')
+		pause(5)
+	end
 end
 
 % Save sync data into a .mat file
@@ -404,6 +449,7 @@ end
 % vector sync_data
 sync_matfile = whos('-file', sync_filename);
 if any(contains({sync_matfile.name}, 'vertical'))
+	load(sync_filename)
 	pre_lag = sync_data_vertical.lag;
 else
 	pre_lag = sync_data_resultant.lag;
