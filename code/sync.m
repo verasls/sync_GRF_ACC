@@ -198,33 +198,35 @@ if ~isempty(dir([path, 'sync_data_', placement, '_', type, '.mat']))
 	to_load = to_load.name;
 	go_direct = 'Yes';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
-	                        ' for the selected accelerometer', ...
-				' placement and type.', ...
-				' Do you want to use it?'], ...
+	                        ' for the resultant vector of the', ...
+				' selected accelerometer placement and', ...
+				' type. Do you want to use it?'], ...
 				'', 'No', 'Yes', 'Yes');
 	if strcmp(use_pre_sync, 'Yes')
 		load([path, to_load])
-		pre_lag = sync_data_resultant.lag;
+		pre_adjusted_time = sync_data_resultant.adjusted_time;
 	end
 elseif ~isempty(dir([path, 'sync_data_', placement, '*.mat']))
 	to_load = dir([path, 'sync_data_', placement, '*.mat']);
 	to_load = to_load.name;
 	go_direct = 'No';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
-	                        ' for the selected accelerometer', ...
-				' placement. Do you want to use it?'], ...
+	                        ' for the resultant vector of the', ...
+				' selected accelerometer placement.', ...
+				' Do you want to use it?'], ...
 				'', 'No', 'Yes', 'Yes');
 	if strcmp(use_pre_sync, 'Yes')
 		load([path, to_load])
-		pre_lag = sync_data_resultant.lag;
+		pre_adjusted_time = sync_data_resultant.adjusted_time;
 	end
 end
 
 for i = 1:2%length(grf_names)
 	grf_data = fR_filt(:, i);
 	grf_time = grf_tmstp(:, i);
-	if exist('pre_lag')
-		grf_time = grf_time + pre_lag(i);
+	if exist('pre_adjusted_time')
+		lag = pre_adjusted_time(i) - min(grf_time);
+		grf_time = grf_time + lag;
 	end
 
 	% Crop accelerometer data around the time of the force plate data
@@ -254,7 +256,8 @@ for i = 1:2%length(grf_names)
 
 	% Plot ground reaction force and acceleration signals to synchronize
 	filename = char(grf_names(i));	
-	fig10 = figure('NAME', ['Plot slider (', filename, ') - Resultant vector']);
+	fig10 = figure('NAME', ['Plot slider (', filename, ...
+	               ') - Resultant vector']);
 	set(gcf, 'Position', get(0, 'Screensize'));
 	plot(acc_time, acc_data)
 	xticks(acc_time(1):minutes(1):acc_time(end));
@@ -330,10 +333,12 @@ for i = 1:2%length(grf_names)
 	if exist('use_pre_sync')
 		if strcmp(use_pre_sync, 'Yes')	
 			pre_x_beginning = sync_data_resultant.x_beginning(i);
-			line([pre_x_beginning, pre_x_beginning], y_lim, 'Color', 'k', ...
+			line([pre_x_beginning, pre_x_beginning], ...
+			     y_lim, 'Color', 'k', ...
 			     'LineWidth', 2, 'HandleVisibility', 'off')
 			pre_x_end = sync_data_resultant.x_end(i);
-			line([pre_x_end, pre_x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
+			line([pre_x_end, pre_x_end], ...
+			     y_lim, 'Color', 'k', 'LineWidth', 2, ...
 			     'HandleVisibility', 'off')
 		end
 	end
@@ -448,16 +453,16 @@ for i = 1:2%length(grf_names)
 	disp(' ')
 
 	% Get and write synchronization values
-	sync_data_tmp = table({filename}, lag, x_beginning, x_end, ...
+	sync_data_tmp = table({filename}, adjusted_time, x_beginning, x_end, ...
 			      {pks_acc_time}, {pks_grf_time});
 	sync_data_tmp.Properties.VariableNames{1} = 'filename';
 	sync_data_tmp.Properties.VariableNames{5} = 'pks_acc_time';
 	sync_data_tmp.Properties.VariableNames{6} = 'pks_grf_time';
 
-	if exist('sync_data_resultant', 'var')
-		sync_data_resultant = [sync_data_resultant; sync_data_tmp];
+	if exist('sync_data_res_tmp', 'var')
+		sync_data_res_tmp = [sync_data_res_tmp; sync_data_tmp];
 	else
-		sync_data_resultant = sync_data_tmp;
+		sync_data_res_tmp = sync_data_tmp;
 	end
 
 	if exist('use_pre_sync') && strcmp(use_pre_sync, 'No')
@@ -485,12 +490,13 @@ elseif contains(file, 'waist', 'IgnoreCase', true)
 		sync_filename = [path, 'sync_data_waist_raw.mat'];
 	end
 end
-% if exist(sync_filename)
-%         save(sync_filename, 'sync_data_resultant', '-append')
-% else
-%         save(sync_filename, 'sync_data_resultant')
-% end
-save(sync_filename, 'sync_data_resultant')
+
+sync_data_resultant = sync_data_res_tmp;
+if exist(sync_filename)
+	save(sync_filename, 'sync_data_resultant', '-append')
+else
+	save(sync_filename, 'sync_data_resultant')
+end
 
 
 % Read sync_data .mat file and check whether there is an object with vertical
@@ -498,9 +504,9 @@ save(sync_filename, 'sync_data_resultant')
 sync_matfile = whos('-file', sync_filename);
 if any(contains({sync_matfile.name}, 'vertical'))
 	load(sync_filename)
-	pre_lag = sync_data_vertical.lag;
+	pre_adjusted_time = sync_data_vertical.adjusted_time;
 else
-	pre_lag = sync_data_resultant.lag;
+	pre_adjusted_time = sync_data_resultant.adjusted_time;
 end
 
 % % Start synchronization process for the vertical vector
@@ -513,29 +519,32 @@ disp(' ')
 if exist('sync_data_vertical')
 	go_direct = 'Yes';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
-	                        ' for the vertical vector of the selected accelerometer', ...
-				' placement and type.', ...
+	                        ' for the vertical vector of the selected', ...
+				' accelerometer placement and type.', ...
 				' Do you want to use it?'], ...
 				'', 'No', 'Yes', 'Yes');
 else
 	go_direct = 'No';
 	use_pre_sync = questdlg(['No previous synchronization was found', ...
-	                        ' for the vertical vector of the selected accelerometer', ...
-				' placement. Do you want to use the synchronization of the resultant vector?'], ...
+	                        ' for the vertical vector of the selected', ...
+				' accelerometer placement. Do you want to', ...
+				' use the synchronization of the', ...
+				' resultant vector?'], ...
 				'', 'No', 'Yes', 'Yes');
 end
 
 if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-	pre_lag = sync_data_vertical.lag;
+	pre_adjusted_time = sync_data_vertical.adjusted_time;
 elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-	pre_lag = sync_data_resultant.lag;
+	pre_adjusted_time = sync_data_resultant.adjusted_time;
 end
 
 for i = 1:2%length(grf_names)
 	grf_data = fZ_filt(:, i);
 	grf_time = grf_tmstp(:, i);
 	if strcmp(use_pre_sync, 'Yes')
-		grf_time = grf_time + pre_lag(i);
+		lag = pre_adjusted_time(i) - min(grf_time);
+		grf_time = grf_time + lag;
 	end
 
 	% Crop accelerometer data around the time of the force plate data
@@ -637,24 +646,61 @@ for i = 1:2%length(grf_names)
 	% Select region of interest
 	y_lim = get(gca, 'YLim');
 	% Plot the pre-defined regions of interest
-	if strcmp(use_pre_sync, 'Yes')	
-		pre_x_beginning = sync_data_resultant.x_beginning(i);
-		line([pre_x_beginning, pre_x_beginning], y_lim, 'Color', 'k', ...
-		     'LineWidth', 2, 'HandleVisibility', 'off')
-		pre_x_end = sync_data_resultant.x_end(i);
-		line([pre_x_end, pre_x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
-		     'HandleVisibility', 'off')
+	if exist('use_pre_sync')
+		if strcmp(use_pre_sync, 'Yes')	&& strcmp(go_direct, 'Yes')
+			pre_x_beginning = sync_data_vertical.x_beginning(i);
+			line([pre_x_beginning, pre_x_beginning], ...
+			     y_lim, 'Color', 'k', ...
+			     'LineWidth', 2, 'HandleVisibility', 'off')
+			pre_x_end = sync_data_vertical.x_end(i);
+			line([pre_x_end, pre_x_end], ...
+			     y_lim, 'Color', 'k', 'LineWidth', 2, ...
+			     'HandleVisibility', 'off')
+		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+			pre_x_beginning = sync_data_resultant.x_beginning(i);
+			line([pre_x_beginning, pre_x_beginning], ...
+			     y_lim, 'Color', 'k', ...
+			     'LineWidth', 2, 'HandleVisibility', 'off')
+			pre_x_end = sync_data_resultant.x_end(i);
+			line([pre_x_end, pre_x_end], ...
+			     y_lim, 'Color', 'k', 'LineWidth', 2, ...
+			     'HandleVisibility', 'off')
+		end
 	end
 	% Beginning
 	title('Click on the BEGINNING of the region of interest')
-	[x_beginning, y] = ginput(1);
-	x_beginning = num2ruler(x_beginning, ax.XAxis);
+	if exist('use_pre_sync')
+		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
+			x_beginning = pre_x_beginning;
+		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+			[x_beginning, y] = ginput(1);
+			x_beginning = num2ruler(x_beginning, ax.XAxis);
+		elseif strcmp(use_pre_sync, 'No')
+			[x_beginning, y] = ginput(1);
+			x_beginning = num2ruler(x_beginning, ax.XAxis);
+		end
+	else
+		[x_beginning, y] = ginput(1);
+		x_beginning = num2ruler(x_beginning, ax.XAxis);
+	end
 	line([x_beginning, x_beginning], y_lim, 'Color', 'k', ...
 	     'LineWidth', 2, 'HandleVisibility', 'off')
 	% End
 	title('Click on the END of the region of interest')
-	[x_end, y] = ginput(1);
-	x_end = num2ruler(x_end, ax.XAxis);
+	if exist('use_pre_sync')
+		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
+			x_end = pre_x_end;
+		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+			[x_end, y] = ginput(1);
+			x_end = num2ruler(x_end, ax.XAxis);
+		elseif strcmp(use_pre_sync, 'No')
+			[x_end, y] = ginput(1);
+			x_end = num2ruler(x_end, ax.XAxis);
+		end
+	else
+		[x_end, y] = ginput(1);
+		x_end = num2ruler(x_end, ax.XAxis);
+	end
 	line([x_end, x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
 	     'HandleVisibility', 'off')
 
@@ -732,43 +778,25 @@ for i = 1:2%length(grf_names)
 	disp(' ')
 
 	% Get and write synchronization values
-	sync_data_tmp = table({filename}, lag, x_beginning, x_end, ...
+	sync_data_tmp = table({filename}, adjusted_time, x_beginning, x_end, ...
 			      {pks_acc_time}, {pks_grf_time});
 	sync_data_tmp.Properties.VariableNames{1} = 'filename';
 	sync_data_tmp.Properties.VariableNames{5} = 'pks_acc_time';
 	sync_data_tmp.Properties.VariableNames{6} = 'pks_grf_time';
 
-	if exist('sync_data', 'var')
-		sync_data_vertical = [sync_data; sync_data_tmp];
+	if exist('sync_data_ver_tmp', 'var')
+		sync_data_ver_tmp = [sync_data_ver_tmp; sync_data_tmp];
 	else
-		sync_data_vertical = sync_data_tmp;
+		sync_data_ver_tmp = sync_data_tmp;
 	end
 
-
-	pause(5)
+	if exist('use_pre_sync') && strcmp(use_pre_sync, 'No')
+		pause(5)
+	end
 end
-
 
 % Save sync data into a .mat file
-if contains(file, 'ankle', 'IgnoreCase', true)
-	if contains(file, 'imu', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_ankle_imu.mat'];
-	elseif contains(file, 'raw', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_ankle_raw.mat'];
-	end
-elseif contains(file, 'back', 'IgnoreCase', true)
-	if contains(file, 'imu', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_back_imu.mat'];
-	elseif contains(file, 'raw', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_back_raw.mat'];
-	end
-elseif contains(file, 'waist', 'IgnoreCase', true)
-	if contains(file, 'imu', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_waist_imu.mat'];
-	elseif contains(file, 'raw', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_waist_raw.mat'];
-	end
-end
+sync_data_vertical = sync_data_ver_tmp;
 if exist(sync_filename)
 	save(sync_filename, 'sync_data_vertical', '-append')
 else
