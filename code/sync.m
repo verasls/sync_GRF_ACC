@@ -202,6 +202,10 @@ if ~isempty(dir([path, 'sync_data_', placement, '_', type, '.mat']))
 				' placement and type.', ...
 				' Do you want to use it?'], ...
 				'', 'No', 'Yes', 'Yes');
+	if strcmp(use_pre_sync, 'Yes')
+		load([path, to_load])
+		pre_lag = sync_data_resultant.lag;
+	end
 elseif ~isempty(dir([path, 'sync_data_', placement, '*.mat']))
 	to_load = dir([path, 'sync_data_', placement, '*.mat']);
 	to_load = to_load.name;
@@ -210,17 +214,16 @@ elseif ~isempty(dir([path, 'sync_data_', placement, '*.mat']))
 	                        ' for the selected accelerometer', ...
 				' placement. Do you want to use it?'], ...
 				'', 'No', 'Yes', 'Yes');
-end
-
-if strcmp(use_pre_sync, 'Yes')
-	load([path, to_load])
-	pre_lag = sync_data_resultant.lag;
+	if strcmp(use_pre_sync, 'Yes')
+		load([path, to_load])
+		pre_lag = sync_data_resultant.lag;
+	end
 end
 
 for i = 1:2%length(grf_names)
 	grf_data = fR_filt(:, i);
 	grf_time = grf_tmstp(:, i);
-	if strcmp(use_pre_sync, 'Yes')
+	if exist('pre_lag')
 		grf_time = grf_time + pre_lag(i);
 	end
 
@@ -264,11 +267,15 @@ for i = 1:2%length(grf_names)
 	ax = gca;
 	ax.FontSize = 15;
 
-	if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-		adjusted_time = min(grf_time);
-	elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-		adjusted_time = plot_slider(fig10, fig11);
-	elseif strcmp(use_pre_sync, 'No')
+	if exist('use_pre_sync')
+		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
+			adjusted_time = min(grf_time);
+		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+			adjusted_time = plot_slider(fig10, fig11);
+		elseif strcmp(use_pre_sync, 'No')
+			adjusted_time = plot_slider(fig10, fig11);
+		end
+	else
 		adjusted_time = plot_slider(fig10, fig11);
 	end
 	lag = adjusted_time - min(grf_time);
@@ -320,22 +327,29 @@ for i = 1:2%length(grf_names)
 	% Select region of interest
 	y_lim = get(gca, 'YLim');
 	% Plot the pre-defined regions of interest
-	if strcmp(use_pre_sync, 'Yes')	
-		pre_x_beginning = sync_data_resultant.x_beginning(i);
-		line([pre_x_beginning, pre_x_beginning], y_lim, 'Color', 'k', ...
-		     'LineWidth', 2, 'HandleVisibility', 'off')
-		pre_x_end = sync_data_resultant.x_end(i);
-		line([pre_x_end, pre_x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
-		     'HandleVisibility', 'off')
+	if exist('use_pre_sync')
+		if strcmp(use_pre_sync, 'Yes')	
+			pre_x_beginning = sync_data_resultant.x_beginning(i);
+			line([pre_x_beginning, pre_x_beginning], y_lim, 'Color', 'k', ...
+			     'LineWidth', 2, 'HandleVisibility', 'off')
+			pre_x_end = sync_data_resultant.x_end(i);
+			line([pre_x_end, pre_x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
+			     'HandleVisibility', 'off')
+		end
 	end
 	% Beginning
 	title('Click on the BEGINNING of the region of interest')
-	if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-		x_beginning = pre_x_beginning;
-	elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-		[x_beginning, y] = ginput(1);
-		x_beginning = num2ruler(x_beginning, ax.XAxis);
-	elseif strcmp(use_pre_sync, 'No')
+	if exist('use_pre_sync')
+		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
+			x_beginning = pre_x_beginning;
+		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+			[x_beginning, y] = ginput(1);
+			x_beginning = num2ruler(x_beginning, ax.XAxis);
+		elseif strcmp(use_pre_sync, 'No')
+			[x_beginning, y] = ginput(1);
+			x_beginning = num2ruler(x_beginning, ax.XAxis);
+		end
+	else
 		[x_beginning, y] = ginput(1);
 		x_beginning = num2ruler(x_beginning, ax.XAxis);
 	end
@@ -343,12 +357,17 @@ for i = 1:2%length(grf_names)
 	     'LineWidth', 2, 'HandleVisibility', 'off')
 	% End
 	title('Click on the END of the region of interest')
-	if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-		x_end = pre_x_end;
-	elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-		[x_end, y] = ginput(1);
-		x_end = num2ruler(x_end, ax.XAxis);
-	elseif strcmp(use_pre_sync, 'No')
+	if exist('use_pre_sync')
+		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
+			x_end = pre_x_end;
+		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+			[x_end, y] = ginput(1);
+			x_end = num2ruler(x_end, ax.XAxis);
+		elseif strcmp(use_pre_sync, 'No')
+			[x_end, y] = ginput(1);
+			x_end = num2ruler(x_end, ax.XAxis);
+		end
+	else
 		[x_end, y] = ginput(1);
 		x_end = num2ruler(x_end, ax.XAxis);
 	end
@@ -440,8 +459,8 @@ for i = 1:2%length(grf_names)
 	else
 		sync_data_resultant = sync_data_tmp;
 	end
-	
-	if strcmp(use_pre_sync, 'No')
+
+	if exist('use_pre_sync') && strcmp(use_pre_sync, 'No')
 		pause(5)
 	end
 end
@@ -466,11 +485,12 @@ elseif contains(file, 'waist', 'IgnoreCase', true)
 		sync_filename = [path, 'sync_data_waist_raw.mat'];
 	end
 end
-if exist(sync_filename)
-	save(sync_filename, 'sync_data_resultant', '-append')
-else
-	save(sync_filename, 'sync_data_resultant')
-end
+% if exist(sync_filename)
+%         save(sync_filename, 'sync_data_resultant', '-append')
+% else
+%         save(sync_filename, 'sync_data_resultant')
+% end
+save(sync_filename, 'sync_data_resultant')
 
 
 % Read sync_data .mat file and check whether there is an object with vertical
@@ -489,10 +509,34 @@ disp('----------------------------------------')
 disp('------------VERTICAL VECTOR-------------')
 disp('----------------------------------------')
 disp(' ')
+% Check if there is a sync_data .mat file available and ask to use it
+if exist('sync_data_vertical')
+	go_direct = 'Yes';
+	use_pre_sync = questdlg(['A previous synchronization was found', ...
+	                        ' for the vertical vector of the selected accelerometer', ...
+				' placement and type.', ...
+				' Do you want to use it?'], ...
+				'', 'No', 'Yes', 'Yes');
+else
+	go_direct = 'No';
+	use_pre_sync = questdlg(['No previous synchronization was found', ...
+	                        ' for the vertical vector of the selected accelerometer', ...
+				' placement. Do you want to use the synchronization of the resultant vector?'], ...
+				'', 'No', 'Yes', 'Yes');
+end
+
+if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
+	pre_lag = sync_data_vertical.lag;
+elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+	pre_lag = sync_data_resultant.lag;
+end
+
 for i = 1:2%length(grf_names)
 	grf_data = fZ_filt(:, i);
 	grf_time = grf_tmstp(:, i);
-	grf_time = grf_time + pre_lag(i);
+	if strcmp(use_pre_sync, 'Yes')
+		grf_time = grf_time + pre_lag(i);
+	end
 
 	% Crop accelerometer data around the time of the force plate data
 	% Get start and end time indices
@@ -537,7 +581,13 @@ for i = 1:2%length(grf_names)
 	ax = gca;
 	ax.FontSize = 15;
 
-	adjusted_time = plot_slider(fig10, fig11);
+	if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
+		adjusted_time = min(grf_time);
+	elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+		adjusted_time = plot_slider(fig10, fig11);
+	elseif strcmp(use_pre_sync, 'No')
+		adjusted_time = plot_slider(fig10, fig11);
+	end
 	lag = adjusted_time - min(grf_time);
 
 	% Make a new plot with the adjusted_time
@@ -587,12 +637,14 @@ for i = 1:2%length(grf_names)
 	% Select region of interest
 	y_lim = get(gca, 'YLim');
 	% Plot the pre-defined regions of interest
-	pre_x_beginning = sync_data_resultant.x_beginning(i);
-	line([pre_x_beginning, pre_x_beginning], y_lim, 'Color', 'k', ...
-	     'LineWidth', 2, 'HandleVisibility', 'off')
-	pre_x_end = sync_data_resultant.x_end(i);
-	line([pre_x_end, pre_x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
-	     'HandleVisibility', 'off')
+	if strcmp(use_pre_sync, 'Yes')	
+		pre_x_beginning = sync_data_resultant.x_beginning(i);
+		line([pre_x_beginning, pre_x_beginning], y_lim, 'Color', 'k', ...
+		     'LineWidth', 2, 'HandleVisibility', 'off')
+		pre_x_end = sync_data_resultant.x_end(i);
+		line([pre_x_end, pre_x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
+		     'HandleVisibility', 'off')
+	end
 	% Beginning
 	title('Click on the BEGINNING of the region of interest')
 	[x_beginning, y] = ginput(1);
@@ -697,5 +749,28 @@ for i = 1:2%length(grf_names)
 end
 
 
-
-
+% Save sync data into a .mat file
+if contains(file, 'ankle', 'IgnoreCase', true)
+	if contains(file, 'imu', 'IgnoreCase', true)
+		sync_filename = [path, 'sync_data_ankle_imu.mat'];
+	elseif contains(file, 'raw', 'IgnoreCase', true)
+		sync_filename = [path, 'sync_data_ankle_raw.mat'];
+	end
+elseif contains(file, 'back', 'IgnoreCase', true)
+	if contains(file, 'imu', 'IgnoreCase', true)
+		sync_filename = [path, 'sync_data_back_imu.mat'];
+	elseif contains(file, 'raw', 'IgnoreCase', true)
+		sync_filename = [path, 'sync_data_back_raw.mat'];
+	end
+elseif contains(file, 'waist', 'IgnoreCase', true)
+	if contains(file, 'imu', 'IgnoreCase', true)
+		sync_filename = [path, 'sync_data_waist_imu.mat'];
+	elseif contains(file, 'raw', 'IgnoreCase', true)
+		sync_filename = [path, 'sync_data_waist_raw.mat'];
+	end
+end
+if exist(sync_filename)
+	save(sync_filename, 'sync_data_vertical', '-append')
+else
+	save(sync_filename, 'sync_data_vertical')
+end
