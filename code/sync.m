@@ -19,6 +19,12 @@ elseif regexpi(file, 'back')
 elseif regexpi(file, 'waist')
 	placement = 'waist';
 end
+% Get selected accelerometer type
+if regexpi(file, 'imu')
+	type = 'imu';
+elseif regexpi(file, 'raw')
+	type = 'raw';
+end
 % Get force plates files metadata
 grf_files = dir([path, '*.txt']);
 % Put file properties into a cell array
@@ -185,18 +191,28 @@ disp(' ')
 disp('----------------------------------------')
 disp('------------RESULTANT VECTOR------------')
 disp('----------------------------------------')
-
+disp(' ')
 % Check if there is a sync_data .mat file available and ask to use it
-if ~isempty(dir([path, 'sync_data_', placement, '*.mat']))
+if ~isempty(dir([path, 'sync_data_', placement, '_', type, '.mat']))
+	to_load = dir([path, 'sync_data_', placement, '_', type, '*.mat']);
+	to_load = to_load.name;
+	go_direct = 'Yes';
+	use_pre_sync = questdlg(['A previous synchronization was found', ...
+	                        ' for the selected accelerometer', ...
+				' placement and type.', ...
+				' Do you want to use it?'], ...
+				'', 'No', 'Yes', 'Yes');
+elseif ~isempty(dir([path, 'sync_data_', placement, '*.mat']))
 	to_load = dir([path, 'sync_data_', placement, '*.mat']);
 	to_load = to_load.name;
+	go_direct = 'No';
+	use_pre_sync = questdlg(['A previous synchronization was found', ...
+	                        ' for the selected accelerometer', ...
+				' placement. Do you want to use it?'], ...
+				'', 'No', 'Yes', 'Yes');
 end
 
-answer = questdlg(['A previous synchronization was found for the selected', ...
-                  ' accelerometer placement. Do you want to use it?'], ...
-		  '', 'No', 'Yes', 'Yes');
-
-if strcmp(answer, 'Yes')
+if strcmp(use_pre_sync, 'Yes')
 	load([path, to_load])
 	pre_lag = sync_data_resultant.lag;
 end
@@ -204,7 +220,9 @@ end
 for i = 1:2%length(grf_names)
 	grf_data = fR_filt(:, i);
 	grf_time = grf_tmstp(:, i);
-	grf_time = grf_time + pre_lag(i);
+	if strcmp(use_pre_sync, 'Yes')
+		grf_time = grf_time + pre_lag(i);
+	end
 
 	% Crop accelerometer data around the time of the force plate data
 	% Get start and end time indices
@@ -246,9 +264,11 @@ for i = 1:2%length(grf_names)
 	ax = gca;
 	ax.FontSize = 15;
 
-	if strcmp(answer, 'Yes')
+	if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
 		adjusted_time = min(grf_time);
-	elseif strcmp(answer, 'No')
+	elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+		adjusted_time = plot_slider(fig10, fig11);
+	elseif strcmp(use_pre_sync, 'No')
 		adjusted_time = plot_slider(fig10, fig11);
 	end
 	lag = adjusted_time - min(grf_time);
@@ -300,17 +320,22 @@ for i = 1:2%length(grf_names)
 	% Select region of interest
 	y_lim = get(gca, 'YLim');
 	% Plot the pre-defined regions of interest
-	pre_x_beginning = sync_data_resultant.x_beginning(i);
-	line([pre_x_beginning, pre_x_beginning], y_lim, 'Color', 'k', ...
-	     'LineWidth', 2, 'HandleVisibility', 'off')
-	pre_x_end = sync_data_resultant.x_end(i);
-	line([pre_x_end, pre_x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
-	     'HandleVisibility', 'off')
+	if strcmp(use_pre_sync, 'Yes')	
+		pre_x_beginning = sync_data_resultant.x_beginning(i);
+		line([pre_x_beginning, pre_x_beginning], y_lim, 'Color', 'k', ...
+		     'LineWidth', 2, 'HandleVisibility', 'off')
+		pre_x_end = sync_data_resultant.x_end(i);
+		line([pre_x_end, pre_x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
+		     'HandleVisibility', 'off')
+	end
 	% Beginning
 	title('Click on the BEGINNING of the region of interest')
-	if strcmp(answer, 'Yes')
+	if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
 		x_beginning = pre_x_beginning;
-	elseif strcmp(answer, 'No')
+	elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+		[x_beginning, y] = ginput(1);
+		x_beginning = num2ruler(x_beginning, ax.XAxis);
+	elseif strcmp(use_pre_sync, 'No')
 		[x_beginning, y] = ginput(1);
 		x_beginning = num2ruler(x_beginning, ax.XAxis);
 	end
@@ -318,9 +343,12 @@ for i = 1:2%length(grf_names)
 	     'LineWidth', 2, 'HandleVisibility', 'off')
 	% End
 	title('Click on the END of the region of interest')
-	if strcmp(answer, 'Yes')
+	if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
 		x_end = pre_x_end;
-	elseif strcmp(answer, 'No')
+	elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
+		[x_end, y] = ginput(1);
+		x_end = num2ruler(x_end, ax.XAxis);
+	elseif strcmp(use_pre_sync, 'No')
 		[x_end, y] = ginput(1);
 		x_end = num2ruler(x_end, ax.XAxis);
 	end
@@ -413,7 +441,7 @@ for i = 1:2%length(grf_names)
 		sync_data_resultant = sync_data_tmp;
 	end
 	
-	if strcmp(answer, 'No')
+	if strcmp(use_pre_sync, 'No')
 		pause(5)
 	end
 end
@@ -460,6 +488,7 @@ disp(' ')
 disp('----------------------------------------')
 disp('------------VERTICAL VECTOR-------------')
 disp('----------------------------------------')
+disp(' ')
 for i = 1:2%length(grf_names)
 	grf_data = fZ_filt(:, i);
 	grf_time = grf_tmstp(:, i);
