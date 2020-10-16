@@ -49,8 +49,8 @@ end_time = max(grf_dtms) + minutes(5);
 
 % Obtain ID variables and body mass
 file_ex = grf_names{1}; % Select a file to obtain the variables below
-ID = str2num(file_ex(end - 6:end - 4));
-trial = str2num(file_ex(end - 8:end - 8));
+ID = str2double(file_ex(end - 6:end - 4));
+trial = str2double(file_ex(end - 8:end - 8));
 body_mass_data = dlmread('../data/body_mass.txt', ',', 1, 0);
 ID_row = find(body_mass_data(:, 1) == ID);
 body_mass = round(body_mass_data(ID_row, 3), 2);
@@ -105,10 +105,10 @@ else
 			    offset_data(:, 3));
 end
 
-fX = [];
-fY = [];
-fZ = [];
-grf_tmstp = [];
+fX = zeros(8000, size(grf_names, 1));
+fY = zeros(8000, size(grf_names, 1));
+fZ = zeros(8000, size(grf_names, 1));
+grf_tmstp = NaT(8000, size(grf_names, 1), 'TimeZone', 'UTC');
 for i = 1:size(grf_names)
 	grf_filename = [path, char(grf_names(i))];
 	grf_data = dlmread(grf_filename);
@@ -132,10 +132,10 @@ for i = 1:size(grf_names)
 	tmstp = tmstp(1:end - 1);
 
 	% Append values to final arrays
-	fX = [fX, X_resamp];
-	fY = [fY, Y_resamp];
-	fZ = [fZ, Z_resamp];
-	grf_tmstp = [grf_tmstp, tmstp];
+	fX(:, i) = X_resamp;
+	fY(:, i) = Y_resamp;
+	fZ(:, i) = Z_resamp;
+	grf_tmstp(:, i) = tmstp;
 end
 samp_freq_grf = samp_freq_acc;
 disp(['Ground reaction force signal was resampled to: ', ...
@@ -237,7 +237,7 @@ end
 for i = 1:2%length(grf_names)
 	grf_data = fR_filt(:, i);
 	grf_time = grf_tmstp(:, i);
-	if exist('pre_adjusted_time')
+	if exist('pre_adjusted_time', 'var')
 		lag = pre_adjusted_time(i) - min(grf_time);
 		grf_time = grf_time + lag;
 	end
@@ -283,7 +283,7 @@ for i = 1:2%length(grf_names)
 	ax = gca;
 	ax.FontSize = 15;
 
-	if exist('use_pre_sync')
+	if exist('use_pre_sync', 'var')
 		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
 			adjusted_time = min(grf_time);
 		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
@@ -343,7 +343,7 @@ for i = 1:2%length(grf_names)
 	% Select region of interest
 	y_lim = get(gca, 'YLim');
 	% Plot the pre-defined regions of interest
-	if exist('use_pre_sync')
+	if exist('use_pre_sync', 'var')
 		if strcmp(use_pre_sync, 'Yes')	
 			pre_x_beginning = sync_data_resultant.x_beginning(i);
 			line([pre_x_beginning, pre_x_beginning], ...
@@ -357,7 +357,7 @@ for i = 1:2%length(grf_names)
 	end
 	% Beginning
 	title('Click on the BEGINNING of the region of interest')
-	if exist('use_pre_sync')
+	if exist('use_pre_sync', 'var')
 		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
 			x_beginning = pre_x_beginning;
 		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
@@ -375,7 +375,7 @@ for i = 1:2%length(grf_names)
 	     'LineWidth', 2, 'HandleVisibility', 'off')
 	% End
 	title('Click on the END of the region of interest')
-	if exist('use_pre_sync')
+	if exist('use_pre_sync', 'var')
 		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
 			x_end = pre_x_end;
 		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
@@ -414,15 +414,15 @@ for i = 1:2%length(grf_names)
 	% Find peaks in the ground reaction force signal
 	pks_grf = zeros(size(pks_acc));
 	pks_grf_idx = zeros(size(pks_acc));
-	for i = 1:length(pks_acc)
-		idx_min = pks_acc_time(i) - seconds(min_dist);
-		idx_max = pks_acc_time(i) + seconds(min_dist);
+	for j = 1:length(pks_acc)
+		idx_min = pks_acc_time(j) - seconds(min_dist);
+		idx_max = pks_acc_time(j) + seconds(min_dist);
 
 		idx_min = find(grf_time == idx_min);
 		idx_max = find(grf_time == idx_max);
 
-		pks_grf(i) = max(grf_data(idx_min:idx_max));
-		pks_grf_idx(i) = find(grf_data(idx_min:idx_max) == pks_grf(i), ...
+		pks_grf(j) = max(grf_data(idx_min:idx_max));
+		pks_grf_idx(j) = find(grf_data(idx_min:idx_max) == pks_grf(j), ...
 				      1, 'first') + idx_min - 1;
 	end
 	pks_grf_time = grf_time(pks_grf_idx);
@@ -431,11 +431,11 @@ for i = 1:2%length(grf_names)
 	     'DisplayName', 'Ground reaction force peaks')
 	
 	% Get values
-	if ~isempty(regexp(filename, '\d_\d*cm'))
+	if ~isempty(regexp(filename, '\d_\d*cm', 'once'))
 		jump_type = 'drop jumps';
-	elseif ~isempty(regexp(filename, '_Box_Jumps_'))
+	elseif ~isempty(regexp(filename, '_Box_Jumps_', 'once'))
 		jump_type = 'box jumps';
-	elseif ~isempty(regexp(filename, '\d_Jumps'))
+	elseif ~isempty(regexp(filename, '\d_Jumps', 'once'))
 		jump_type = 'continuous jumps';
 	end
 
@@ -474,11 +474,11 @@ for i = 1:2%length(grf_names)
 
 	if exist('sync_data_res_tmp', 'var')
 		sync_data_res_tmp = [sync_data_res_tmp; sync_data_tmp];
-	else
+    else
 		sync_data_res_tmp = sync_data_tmp;
 	end
 
-	if exist('use_pre_sync') && strcmp(use_pre_sync, 'No')
+	if exist('use_pre_sync', 'var') && strcmp(use_pre_sync, 'No')
 		pause(5)
 	end
 end
@@ -505,7 +505,7 @@ elseif contains(file, 'waist', 'IgnoreCase', true)
 end
 
 sync_data_resultant = sync_data_res_tmp;
-if exist(sync_filename)
+if exist(sync_filename, 'file')
 	save(sync_filename, 'sync_data_resultant', '-append')
 else
 	save(sync_filename, 'sync_data_resultant')
@@ -529,7 +529,7 @@ disp('------------VERTICAL VECTOR-------------')
 disp('----------------------------------------')
 disp(' ')
 % Check if there is a sync_data .mat file available and ask to use it
-if exist('sync_data_vertical') && contains(to_load, type) && ...
+if exist('sync_data_vertical', 'var') && contains(to_load, type) && ...
 	contains(to_load, placement)
 	go_direct = 'Yes';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
@@ -537,7 +537,7 @@ if exist('sync_data_vertical') && contains(to_load, type) && ...
 				' accelerometer placement and type.', ...
 				' Do you want to use it?'], ...
 				'', 'No', 'Yes', 'Yes');
-elseif exist('sync_data_vertical') && ~contains(to_load, type) && ...
+elseif exist('sync_data_vertical', 'var') && ~contains(to_load, type) && ...
 	contains(to_load, placement)
 	go_direct = 'No';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
@@ -545,7 +545,7 @@ elseif exist('sync_data_vertical') && ~contains(to_load, type) && ...
 				' accelerometer placement.', ...
 				' Do you want to use it?'], ...
 				'', 'No', 'Yes', 'Yes');
-elseif exist('sync_data_vertical') && contains(to_load, type) && ...
+elseif exist('sync_data_vertical', 'var') && contains(to_load, type) && ...
 	~contains(to_load, placement)
 	go_direct = 'No';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
@@ -553,7 +553,7 @@ elseif exist('sync_data_vertical') && contains(to_load, type) && ...
 				' accelerometer type.', ...
 				' Do you want to use it?'], ...
 				'', 'No', 'Yes', 'Yes');
-elseif ~exist('sync_data_vertical')
+elseif ~exist('sync_data_vertical', 'var')
 	go_direct = 'No';
 	use_pre_sync = questdlg(['No previous synchronization was found', ...
 	                        ' for the vertical vector of the selected', ...
@@ -676,7 +676,7 @@ for i = 1:2%length(grf_names)
 	% Select region of interest
 	y_lim = get(gca, 'YLim');
 	% Plot the pre-defined regions of interest
-	if exist('use_pre_sync')
+	if exist('use_pre_sync', 'var')
 		if strcmp(use_pre_sync, 'Yes')	&& strcmp(go_direct, 'Yes')
 			pre_x_beginning = sync_data_vertical.x_beginning(i);
 			line([pre_x_beginning, pre_x_beginning], ...
@@ -699,7 +699,7 @@ for i = 1:2%length(grf_names)
 	end
 	% Beginning
 	title('Click on the BEGINNING of the region of interest')
-	if exist('use_pre_sync')
+	if exist('use_pre_sync', 'var')
 		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
 			x_beginning = pre_x_beginning;
 		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
@@ -717,7 +717,7 @@ for i = 1:2%length(grf_names)
 	     'LineWidth', 2, 'HandleVisibility', 'off')
 	% End
 	title('Click on the END of the region of interest')
-	if exist('use_pre_sync')
+	if exist('use_pre_sync', 'var')
 		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
 			x_end = pre_x_end;
 		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
@@ -756,15 +756,15 @@ for i = 1:2%length(grf_names)
 	% Find peaks in the ground reaction force signal
 	pks_grf = zeros(size(pks_acc));
 	pks_grf_idx = zeros(size(pks_acc));
-	for i = 1:length(pks_acc)
-		idx_min = pks_acc_time(i) - seconds(min_dist);
-		idx_max = pks_acc_time(i) + seconds(min_dist);
+	for j = 1:length(pks_acc)
+		idx_min = pks_acc_time(j) - seconds(min_dist);
+		idx_max = pks_acc_time(j) + seconds(min_dist);
 
 		idx_min = find(grf_time == idx_min);
 		idx_max = find(grf_time == idx_max);
 
-		pks_grf(i) = max(grf_data(idx_min:idx_max));
-		pks_grf_idx(i) = find(grf_data(idx_min:idx_max) == pks_grf(i), ...
+		pks_grf(j) = max(grf_data(idx_min:idx_max));
+		pks_grf_idx(j) = find(grf_data(idx_min:idx_max) == pks_grf(j), ...
 				      1, 'first') + idx_min - 1;
 	end
 	pks_grf_time = grf_time(pks_grf_idx);
@@ -773,11 +773,11 @@ for i = 1:2%length(grf_names)
 	     'DisplayName', 'Ground reaction force peaks')
 
 	% Get values
-	if ~isempty(regexp(filename, '\d_\d*cm'))
+	if ~isempty(regexp(filename, '\d_\d*cm', 'once'))
 		jump_type = 'drop jumps';
-	elseif ~isempty(regexp(filename, '_Box_Jumps_'))
+	elseif ~isempty(regexp(filename, '_Box_Jumps_', 'once'))
 		jump_type = 'box jumps';
-	elseif ~isempty(regexp(filename, '\d_Jumps'))
+	elseif ~isempty(regexp(filename, '\d_Jumps', 'once'))
 		jump_type = 'continuous jumps';
 	end
 
@@ -820,14 +820,14 @@ for i = 1:2%length(grf_names)
 		sync_data_ver_tmp = sync_data_tmp;
 	end
 
-	if exist('use_pre_sync') && strcmp(use_pre_sync, 'No')
+	if exist('use_pre_sync', 'var') && strcmp(use_pre_sync, 'No')
 		pause(5)
 	end
 end
 
 % Save sync data into a .mat file
 sync_data_vertical = sync_data_ver_tmp;
-if exist(sync_filename)
+if exist(sync_filename, 'file')
 	save(sync_filename, 'sync_data_vertical', '-append')
 else
 	save(sync_filename, 'sync_data_vertical')
