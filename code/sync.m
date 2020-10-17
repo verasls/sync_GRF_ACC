@@ -485,6 +485,9 @@ for i = 1:2%length(grf_names)
 	if exist('use_pre_sync', 'var') && strcmp(use_pre_sync, 'No')
 		pause(5)
 	end
+	if exist('go_direct', 'var') && strcmp(go_direct, 'No')
+		pause(2)
+	end
 end
 
 % Save sync data into a .mat file
@@ -830,6 +833,9 @@ for i = 1:2%length(grf_names)
 
 	if exist('use_pre_sync', 'var') && strcmp(use_pre_sync, 'No')
 		pause(5)
+	end
+	if exist('go_direct', 'var') && strcmp(go_direct, 'No')
+		pause(2)
 	end
 end
 
