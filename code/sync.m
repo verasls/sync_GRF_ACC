@@ -442,11 +442,15 @@ for i = 1:2%length(grf_names)
 	jump_height = char(regexp(filename, '.\dcm', 'Match'));
 	jump_height = str2double(regexp(jump_height, '\d*', 'Match'));
 
-	n_peaks = length(pks_grf);
-	avg_pks_acc_g = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
-	avg_pks_acc_ms2 = avg_pks_acc_g * G;
-	avg_pks_grf_N = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
-	avg_pks_grf_BW = avg_pks_grf_N / (body_mass * G);
+	n_peaks_resultant = length(pks_grf);
+	pRACC_g_mean = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
+	pRACC_g_sd = std(acc_raw_mean + pks_acc * acc_raw_stdv);
+	pRACC_ms2_mean = pRACC_g_mean * G;
+	pRACC_ms2_sd = pRACC_g_sd * G;
+	pRGRF_N_mean = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
+	pRGRF_N_sd = std(grf_raw_mean + pks_grf * grf_raw_stdv);
+	pRGRF_BW_mean = pRGRF_N_mean / (body_mass * G);
+	pRGRF_BW_sd = pRGRF_N_sd / (body_mass * G);
 
 	disp('----------------------------------------')
 	disp(' ')
@@ -454,15 +458,15 @@ for i = 1:2%length(grf_names)
 	disp(['Jump type: ', jump_type])
 	disp(['Jump height: ', num2str(jump_height), 'cm'])
 	disp('Resultant vector')
-	disp(['Number of peaks: ', num2str(n_peaks)])
+	disp(['Number of peaks: ', num2str(n_peaks_resultant)])
 	disp(['Average acceleration peak (m/s2): ', ...
-	     num2str(round(avg_pks_acc_ms2, 1))])
+	     num2str(round(pRACC_ms2_mean, 1))])
 	disp(['Average acceleration peak (g): ', ...
-	     num2str(round(avg_pks_acc_g, 1))])
+	     num2str(round(pRACC_g_mean, 1))])
 	disp(['Average ground reaction force peak (N): ', ...
-	     num2str(round(avg_pks_grf_N, 1))])
+	     num2str(round(pRGRF_N_mean, 1))])
 	disp(['Average ground reaction force peak (BW): ', ...
-	     num2str(round(avg_pks_grf_BW, 1))])
+	     num2str(round(pRGRF_BW_mean, 1))])
 	disp(' ')
 
 	% Get and write synchronization values
@@ -784,11 +788,15 @@ for i = 1:2%length(grf_names)
 	jump_height = char(regexp(filename, '.\dcm', 'Match'));
 	jump_height = str2double(regexp(jump_height, '\d*', 'Match'));
 
-	n_peaks = length(pks_grf);
-	avg_pks_acc_g = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
-	avg_pks_acc_ms2 = avg_pks_acc_g * G;
-	avg_pks_grf_N = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
-	avg_pks_grf_BW = avg_pks_grf_N / (body_mass * G);
+	n_peaks_vertical = length(pks_grf);
+	pVACC_g_mean = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
+	pVACC_g_sd = std(acc_raw_mean + pks_acc * acc_raw_stdv);
+	pVACC_ms2_mean = pVACC_g_mean * G;
+	pVACC_ms2_sd = pVACC_g_sd * G;
+	pVGRF_N_mean = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
+	pVGRF_N_sd = std(grf_raw_mean + pks_grf * grf_raw_stdv);
+	pVGRF_BW_mean = pVGRF_N_mean / (body_mass * G);
+	pVGRF_BW_sd = pVGRF_N_sd / (body_mass * G);
 
 	disp('----------------------------------------')
 	disp(' ')
@@ -796,15 +804,15 @@ for i = 1:2%length(grf_names)
 	disp(['Jump type: ', jump_type])
 	disp(['Jump height: ', num2str(jump_height), 'cm'])
 	disp('Resultant vector')
-	disp(['Number of peaks: ', num2str(n_peaks)])
+	disp(['Number of peaks: ', num2str(n_peaks_vertical)])
 	disp(['Average acceleration peak (m/s2): ', ...
-	     num2str(round(avg_pks_acc_ms2, 1))])
+	     num2str(round(pVACC_ms2_mean, 1))])
 	disp(['Average acceleration peak (g): ', ...
-	     num2str(round(avg_pks_acc_g, 1))])
+	     num2str(round(pVACC_g_mean, 1))])
 	disp(['Average ground reaction force peak (N): ', ...
-	     num2str(round(avg_pks_grf_N, 1))])
+	     num2str(round(pVGRF_N_mean, 1))])
 	disp(['Average ground reaction force peak (BW): ', ...
-	     num2str(round(avg_pks_grf_BW, 1))])
+	     num2str(round(pVGRF_BW_mean, 1))])
 	disp(' ')
 
 	% Get and write synchronization values
