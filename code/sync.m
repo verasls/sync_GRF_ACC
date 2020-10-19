@@ -13,17 +13,17 @@ G = 9.81;
 
 % Get selected accelerometer placement
 if regexpi(file, 'ankle')
-	placement = 'ankle';
+	acc_placement = 'ankle';
 elseif regexpi(file, 'back')
-	placement = 'back';
+	acc_placement = 'back';
 elseif regexpi(file, 'waist')
-	placement = 'waist';
+	acc_placement = 'waist';
 end
 % Get selected accelerometer type
 if regexpi(file, 'imu')
-	type = 'imu';
+	acc_type = 'imu';
 elseif regexpi(file, 'raw')
-	type = 'raw';
+	acc_type = 'raw';
 end
 % Get force plates files metadata
 grf_files = dir([path, '*.txt']);
@@ -193,8 +193,8 @@ disp('------------RESULTANT VECTOR------------')
 disp('----------------------------------------')
 disp(' ')
 % Check if there is a sync_data .mat file available and ask to use it
-if ~isempty(dir([path, 'sync_data_', placement, '_', type, '.mat']))
-	to_load = dir([path, 'sync_data_', placement, '_', type, '*.mat']);
+if ~isempty(dir([path, 'sync_data_', acc_placement, '_', acc_type, '.mat']))
+	to_load = dir([path, 'sync_data_', acc_placement, '_', acc_type, '*.mat']);
 	to_load = to_load.name;
 	go_direct = 'Yes';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
@@ -206,8 +206,8 @@ if ~isempty(dir([path, 'sync_data_', placement, '_', type, '.mat']))
 		load([path, to_load])
 		pre_adjusted_time = sync_data_resultant.adjusted_time;
 	end
-elseif ~isempty(dir([path, 'sync_data_', placement, '*.mat']))
-	to_load = dir([path, 'sync_data_', placement, '*.mat']);
+elseif ~isempty(dir([path, 'sync_data_', acc_placement, '*.mat']))
+	to_load = dir([path, 'sync_data_', acc_placement, '*.mat']);
 	to_load = to_load.name;
 	go_direct = 'No';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
@@ -219,8 +219,8 @@ elseif ~isempty(dir([path, 'sync_data_', placement, '*.mat']))
 		load([path, to_load])
 		pre_adjusted_time = sync_data_resultant.adjusted_time;
 	end
-elseif ~isempty(dir([path, 'sync_data_*', type, '.mat']))
-	to_load = dir([path, 'sync_data_*', type, '.mat']);
+elseif ~isempty(dir([path, 'sync_data_*', acc_type, '.mat']))
+	to_load = dir([path, 'sync_data_*', acc_type, '.mat']);
 	to_load = to_load.name;
 	go_direct = 'No';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
@@ -432,42 +432,57 @@ for i = 1:2%length(grf_names)
 	
 	% Get values
 	if ~isempty(regexp(filename, '\d_\d*cm', 'once'))
-		jump_type = 'drop jumps';
+		jump_type = {'drop jumps'};
 	elseif ~isempty(regexp(filename, '_Box_Jumps_', 'once'))
-		jump_type = 'box jumps';
+		jump_type = {'box jumps'};
 	elseif ~isempty(regexp(filename, '\d_Jumps', 'once'))
-		jump_type = 'continuous jumps';
+		jump_type = {'continuous jumps'};
 	end
 
 	jump_height = char(regexp(filename, '.\dcm', 'Match'));
 	jump_height = str2double(regexp(jump_height, '\d*', 'Match'));
 
-	n_peaks_resultant = length(pks_grf);
-	pRACC_g_mean = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
-	pRACC_g_sd = std(acc_raw_mean + pks_acc * acc_raw_stdv);
-	pRACC_ms2_mean = pRACC_g_mean * G;
-	pRACC_ms2_sd = pRACC_g_sd * G;
-	pRGRF_N_mean = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
-	pRGRF_N_sd = std(grf_raw_mean + pks_grf * grf_raw_stdv);
-	pRGRF_BW_mean = pRGRF_N_mean / (body_mass * G);
-	pRGRF_BW_sd = pRGRF_N_sd / (body_mass * G);
+	vector = {'resultant'};
+	grf_file = grf_names(i);
+	n_peaks = length(pks_grf);
+	pACC_g_mean = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
+	pACC_g_sd = std(acc_raw_mean + pks_acc * acc_raw_stdv);
+	pACC_ms2_mean = pACC_g_mean * G;
+	pACC_ms2_sd = pACC_g_sd * G;
+	pGRF_N_mean = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
+	pGRF_N_sd = std(grf_raw_mean + pks_grf * grf_raw_stdv);
+	pGRF_BW_mean = pGRF_N_mean / (body_mass * G);
+	pGRF_BW_sd = pGRF_N_sd / (body_mass * G);
 
 	disp('----------------------------------------')
 	disp(' ')
 	disp(['File: ', filename])
-	disp(['Jump type: ', jump_type])
+	disp(['Jump type: ', char(jump_type)])
 	disp(['Jump height: ', num2str(jump_height), 'cm'])
 	disp('Resultant vector')
-	disp(['Number of peaks: ', num2str(n_peaks_resultant)])
+	disp(['Number of peaks: ', num2str(n_peaks)])
 	disp(['Average acceleration peak (m/s2): ', ...
-	     num2str(round(pRACC_ms2_mean, 1))])
+	     num2str(round(pACC_ms2_mean, 1))])
 	disp(['Average acceleration peak (g): ', ...
-	     num2str(round(pRACC_g_mean, 1))])
+	     num2str(round(pACC_g_mean, 1))])
 	disp(['Average ground reaction force peak (N): ', ...
-	     num2str(round(pRGRF_N_mean, 1))])
+	     num2str(round(pGRF_N_mean, 1))])
 	disp(['Average ground reaction force peak (BW): ', ...
-	     num2str(round(pRGRF_BW_mean, 1))])
+	     num2str(round(pGRF_BW_mean, 1))])
 	disp(' ')
+
+	% Put values in a table
+	res_data_tmp = table(ID, grf_file, acc_placement, acc_type, ...
+			     jump_type, jump_height, body_mass,vector, ...
+			     n_peaks, pACC_g_mean, pACC_g_sd, pACC_ms2_mean, ...
+			     pACC_ms2_sd, pGRF_N_mean, pGRF_N_sd, ...
+			     pGRF_BW_mean, pGRF_BW_sd);
+
+	if exist('res_data', 'var')
+		res_data = [res_data; res_data_tmp];
+	else
+		res_data = res_data_tmp;
+	end
 
 	% Get and write synchronization values
 	sync_data_tmp = table({filename}, adjusted_time, x_beginning, x_end, ...
@@ -478,7 +493,7 @@ for i = 1:2%length(grf_names)
 
 	if exist('sync_data_res_tmp', 'var')
 		sync_data_res_tmp = [sync_data_res_tmp; sync_data_tmp];
-    else
+        else
 		sync_data_res_tmp = sync_data_tmp;
 	end
 
@@ -536,24 +551,24 @@ disp('------------VERTICAL VECTOR-------------')
 disp('----------------------------------------')
 disp(' ')
 % Check if there is a sync_data .mat file available and ask to use it
-if exist('sync_data_vertical', 'var') && contains(to_load, type) && ...
-	contains(to_load, placement)
+if exist('sync_data_vertical', 'var') && contains(to_load, acc_type) && ...
+	contains(to_load, acc_placement)
 	go_direct = 'Yes';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
 	                        ' for the vertical vector of the selected', ...
 				' accelerometer placement and type.', ...
 				' Do you want to use it?'], ...
 				'', 'No', 'Yes', 'Yes');
-elseif exist('sync_data_vertical', 'var') && ~contains(to_load, type) && ...
-	contains(to_load, placement)
+elseif exist('sync_data_vertical', 'var') && ~contains(to_load, acc_type) && ...
+	contains(to_load, acc_placement)
 	go_direct = 'No';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
 	                        ' for the vertical vector of the selected', ...
 				' accelerometer placement.', ...
 				' Do you want to use it?'], ...
 				'', 'No', 'Yes', 'Yes');
-elseif exist('sync_data_vertical', 'var') && contains(to_load, type) && ...
-	~contains(to_load, placement)
+elseif exist('sync_data_vertical', 'var') && contains(to_load, acc_type) && ...
+	~contains(to_load, acc_placement)
 	go_direct = 'No';
 	use_pre_sync = questdlg(['A previous synchronization was found', ...
 	                        ' for the vertical vector of the selected', ...
@@ -781,42 +796,57 @@ for i = 1:2%length(grf_names)
 
 	% Get values
 	if ~isempty(regexp(filename, '\d_\d*cm', 'once'))
-		jump_type = 'drop jumps';
+		jump_type = {'drop jumps'};
 	elseif ~isempty(regexp(filename, '_Box_Jumps_', 'once'))
-		jump_type = 'box jumps';
+		jump_type = {'box jumps'};
 	elseif ~isempty(regexp(filename, '\d_Jumps', 'once'))
-		jump_type = 'continuous jumps';
+		jump_type = {'continuous jumps'};
 	end
 
 	jump_height = char(regexp(filename, '.\dcm', 'Match'));
 	jump_height = str2double(regexp(jump_height, '\d*', 'Match'));
 
-	n_peaks_vertical = length(pks_grf);
-	pVACC_g_mean = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
-	pVACC_g_sd = std(acc_raw_mean + pks_acc * acc_raw_stdv);
-	pVACC_ms2_mean = pVACC_g_mean * G;
-	pVACC_ms2_sd = pVACC_g_sd * G;
-	pVGRF_N_mean = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
-	pVGRF_N_sd = std(grf_raw_mean + pks_grf * grf_raw_stdv);
-	pVGRF_BW_mean = pVGRF_N_mean / (body_mass * G);
-	pVGRF_BW_sd = pVGRF_N_sd / (body_mass * G);
+	vector = {'vertical'};
+	grf_file = grf_names(i);
+	n_peaks= length(pks_grf);
+	pACC_g_mean = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
+	pACC_g_sd = std(acc_raw_mean + pks_acc * acc_raw_stdv);
+	pACC_ms2_mean = pACC_g_mean * G;
+	pACC_ms2_sd = pACC_g_sd * G;
+	pGRF_N_mean = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
+	pGRF_N_sd = std(grf_raw_mean + pks_grf * grf_raw_stdv);
+	pGRF_BW_mean = pGRF_N_mean / (body_mass * G);
+	pGRF_BW_sd = pGRF_N_sd / (body_mass * G);
 
 	disp('----------------------------------------')
 	disp(' ')
 	disp(['File: ', filename])
-	disp(['Jump type: ', jump_type])
+	disp(['Jump type: ', char(jump_type)])
 	disp(['Jump height: ', num2str(jump_height), 'cm'])
 	disp('Resultant vector')
-	disp(['Number of peaks: ', num2str(n_peaks_vertical)])
+	disp(['Number of peaks: ', num2str(n_peaks)])
 	disp(['Average acceleration peak (m/s2): ', ...
-	     num2str(round(pVACC_ms2_mean, 1))])
+	     num2str(round(pACC_ms2_mean, 1))])
 	disp(['Average acceleration peak (g): ', ...
-	     num2str(round(pVACC_g_mean, 1))])
+	     num2str(round(pACC_g_mean, 1))])
 	disp(['Average ground reaction force peak (N): ', ...
-	     num2str(round(pVGRF_N_mean, 1))])
+	     num2str(round(pGRF_N_mean, 1))])
 	disp(['Average ground reaction force peak (BW): ', ...
-	     num2str(round(pVGRF_BW_mean, 1))])
+	     num2str(round(pGRF_BW_mean, 1))])
 	disp(' ')
+
+	% Put values in a table
+	ver_data_tmp = table(ID, grf_file, acc_placement, acc_type, ...
+			     jump_type, jump_height, body_mass,vector, ...
+			     n_peaks, pACC_g_mean, pACC_g_sd, pACC_ms2_mean, ...
+			     pACC_ms2_sd, pGRF_N_mean, pGRF_N_sd, ...
+			     pGRF_BW_mean, pGRF_BW_sd);
+
+	if exist('ver_data', 'var')
+		ver_data = [ver_data; ver_data_tmp];
+	else
+		ver_data = ver_data_tmp;
+	end
 
 	% Get and write synchronization values
 	sync_data_tmp = table({filename}, adjusted_time, x_beginning, x_end, ...
@@ -846,3 +876,8 @@ if exist(sync_filename, 'file')
 else
 	save(sync_filename, 'sync_data_vertical')
 end
+
+% Concatenate data from resultant and vertical vectors
+extracted_data = [res_data; ver_data];
+data_path = [path, 'extracted_data_', acc_placement, '_', acc_type, '.csv'];
+writetable(extracted_data, data_path)
