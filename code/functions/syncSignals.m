@@ -1,11 +1,11 @@
-function [syncData, extractedData] = syncSignals(vector, grfFile, 
-												 grfSignal, grfTime, 
-												 accSignal, accTime, 
-												 sampFreqAcc, bodyMass
-												 accPlacement, accType ...
-												 usePreSync, goDirect, ...
-												 preAdjustedTime, ...
-												 preXBeginning, preXEnd)
+function [syncData, extractedData] = syncSignals(ID, vector, grfFile,...
+                                                 grfSignal, grfTime,...
+                                                 accSignal, accTime,...
+                                                 sampFreqAcc, bodyMass, ...
+                                                 accPlacement, accType, ...
+                                                 usePreSync, goDirect, ...
+                                                 preAdjustedTime, ...
+                                                 preXBeginning, preXEnd)
 if ~isempty(preAdjustedTime)
 	lag = preAdjustedTime - min(grfTime);
 	grfTime = grfTime + lag;
@@ -46,7 +46,7 @@ hold on
 fig11 = plot(grfTime, grfSignal);
 hold off
 title({'Adjust the plots using the buttons below', ...
- 	   'Press "Continue" when done'})
+      'Press "Continue" when done'})
 legend('Acceleration', 'Ground reaction force')
 ax = gca;
 ax.FontSize = 15;
@@ -62,9 +62,9 @@ lag = adjustedTime - min(grfTime);
 grfTime = grfTime + lag;
 % Adjust the acc timestamp
 startTime = min(grfTime) - minutes(0.5);
-endTime = max(grfTime) - minutes(0.5);
+endTime = max(grfTime) + minutes(0.5);
 startIdx = find(accTime == startTime);
-endIdx = find(accTime == endIdx);
+endIdx = find(accTime == endTime);
 % Crop accelerometer signal and time
 accSignal = accSignal(startIdx:endIdx);
 accTime = accTime(startIdx:endIdx);
@@ -84,12 +84,12 @@ ax.FontSize = 15;
 minHeight = 4;
 minDist = 3;
 [pksAcc, pksAccIdx] = find_signal_peaks(minHeight, minDist, ...
-										sampFreqAcc, accSignal)
+                                        sampFreqAcc, accSignal);
 pksAccTime = accTime(pksAccIdx);
 
 % Plot the acceleration peaks
-figure('NAME', ['Define region of interest (', grfFile, ') - ', ...
-	   vector, ' vector'])
+figure('NAME', ['Define region of interest (', char(grfFile), ') - ', ...
+       vector, ' vector'])
 set(gcf, 'Position', get(0, 'Screensize'));
 plot(accTime, accSignal)
 hold on
@@ -98,16 +98,16 @@ legend('Acceleration', 'Ground reaction force')
 ax = gca;
 ax.FontSize = 15;
 plot(pksAccTime, pksAcc, 'rx', 'MarkerSize', 10, ...
-	 'DisplayName', 'Acceleration peaks')
+     'DisplayName', 'Acceleration peaks')
 
 % Select region of interest
 yLim = get(gca, 'YLim');
 % Plot the pre-defined region of interest (if exist)
 if strcmp(usePreSync, 'Yes')
 	line([preXBeginning, preXBeginning], yLim, 'Color', 'k', ...
-		 'LineWidth', 2, 'HandleVisibility', 'off')
+	     'LineWidth', 2, 'HandleVisibility', 'off')
 	line([preXEnd, preXEnd], yLim, 'Color', 'k', ...
-		 'LineWidth', 2, 'HandleVisibility', 'off')
+	     'LineWidth', 2, 'HandleVisibility', 'off')
 end
 % Beginning
 title('Click on the BEGINNING of the region of interest')
@@ -118,7 +118,7 @@ else
 	xBeginning = num2ruler(xBeginning, ax.XAxis);
 end
 line([xBeginning, xBeginning], yLim, 'Color', 'k', 'LineWidth', 2, ...
-	 'HandleVisibility', 'off')
+     'HandleVisibility', 'off')
 % End
 title('Click on the END of the region of interest')
 if strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'Yes')
@@ -128,7 +128,7 @@ else
 	xEnd = num2ruler(xEnd, ax.XAxis);
 end
 line([xEnd, xEnd], yLim, 'Color', 'k', 'LineWidth', 2, ...
-	 'HandleVisibility', 'off')
+     'HandleVisibility', 'off')
 
 % Remove the peaks out of the region of interest
 pksKeep = pksAccTime > xBeginning & pksAccTime < xEnd;
@@ -136,8 +136,8 @@ pksAcc = pksAcc(pksKeep);
 pksAccTime = pksAccTime(pksKeep);
 pksAccIdx = pksAccIdx(pksKeep);
 
-figure('NAME', ['Peaks in the region of interest (' grfFile, ...
-	   ') - ', vector, ' vector'])
+figure('NAME', ['Peaks in the region of interest (', grfFile, ...
+       ') - ', vector, ' vector'])
 set(gcf, 'Position', get(0, 'Screensize'));
 plot(accTime, accSignal)
 hold on
@@ -160,13 +160,13 @@ for i = 1:length(pksAcc)
 
 	pksGrf(i) = max(grfSignal(idxMin:idxMax));
 	pksGrfIdx(i) = find(grfSignal(idxMin:idxMax) == pksGrf(i), ...
-						1, 'first') + idxMin - 1;
+	                    1, 'first') + idxMin - 1;
 end
 pksGrfTime = grfTime(pksGrfIdx);
 
 plot(pksGrfTime, pksGrf, 'gx', 'MarkerSize', 10, ...
-	 'DisplayName', 'Ground reaction force peaks')
-	
+     'DisplayName', 'Ground reaction force peaks')
+
 % Get values
 if ~isempty(regexp(grfFile, '\d_\d*cm', 'once'))
 	jumpType = {'drop jumps'};
@@ -176,14 +176,13 @@ elseif ~isempty(regexp(grfFile, '\d_Jumps', 'once'))
 	jumpType = {'continuous jumps'};
 end
 
-jumpHeight = char(regexp(grfFile, '.\dcm', 'Match'));
+jumpHeight = char(regexp(char(grfFile), '.\dcm', 'Match'));
 jumpHeight = str2double(regexp(jumpHeight, '\d*', 'Match'));
 
 vector = {vector};
-grfFile = {grfFile};
 nPeaks = length(pksGrf);
 pAccGMean = mean(accRawMean + pksAcc * accRawSd);
-pAccGsd = std(accRawMean + pksAcc * accRawSd);
+pAccGSd = std(accRawMean + pksAcc * accRawSd);
 pAccMs2Mean = pAccGMean * 9.81;
 pAccMs2Sd = pAccGSd * 9.81;
 pGrfNMean = mean(grfRawMean + pksGrf * grfRawSd);
@@ -210,13 +209,14 @@ disp(' ')
 
 % Put values in a table
 extractedData = table(ID, {grfFile}, accPlacement, accType, jumpType, ...
-				 	  jumpHeight, bodyMass, vector, nPeaks, pAccGMean, ...
-					  pAccGsd, pAccMs2Mean, pAccMs2Sd, pGrfNMean, ...
-					  pGrfNSd, pGrfBwMean, pGrfBwSd);
+                      jumpHeight, bodyMass, vector, nPeaks, pAccGMean, ...
+                      pAccGSd, pAccMs2Mean, pAccMs2Sd, pGrfNMean, ...
+                      pGrfNSd, pGrfBwMean, pGrfBwSd);
+extractedData.Properties.VariableNames{2} = 'filename';
 
 % Get and write synchronization values
 syncData = table({grfFile}, adjustedTime, xBeginning, xEnd, ...
-				 {pksAccTime}, {pksGrfTime});
+                 {pksAccTime}, {pksGrfTime});
 syncData.Properties.VariableNames{1} = 'filename';
 syncData.Properties.VariableNames{5} = 'pksAccTime';
 syncData.Properties.VariableNames{6} = 'pksGrfTime';
