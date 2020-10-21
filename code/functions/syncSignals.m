@@ -134,7 +134,6 @@ line([xEnd, xEnd], yLim, 'Color', 'k', 'LineWidth', 2, ...
 pksKeep = pksAccTime > xBeginning & pksAccTime < xEnd;
 pksAcc = pksAcc(pksKeep);
 pksAccTime = pksAccTime(pksKeep);
-pksAccIdx = pksAccIdx(pksKeep);
 
 figure('NAME', ['Peaks in the region of interest (', grfFile, ...
        ') - ', vector, ' vector'])
