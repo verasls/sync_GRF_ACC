@@ -225,9 +225,6 @@ end
 
 if strcmp(usePreSync, 'Yes')
 	load([path, toLoad])
-	preAdjustedTime = syncDataResultant.adjustedTime;
-	preXBeginning = syncDataResultant.xBeginning;
-	preXEnd = syncDataResultant.xEnd;
 else
 	preAdjustedTime = [];
 	preXBeginning = [];
@@ -241,9 +238,9 @@ for i = 1:2%length(grfNames)
 	accSignal = aRFilt;
 	accTime = accTmstp;
 	if strcmp(usePreSync, 'Yes')
-		preAdjustedTime = preAdjustedTime(i);
-		preXBeginning = preXBeginning(i);
-		preXEnd = preXEnd(i);
+		preAdjustedTime = syncDataResultant.adjustedTime(i);
+		preXBeginning = syncDataResultant.xBeginning(i);
+		preXEnd = syncDataResultant.xEnd(i);
 	end
 
 	% Start synchronization
@@ -262,7 +259,7 @@ for i = 1:2%length(grfNames)
 		extractedDataRes = extractedDataTmp;
 	end
 
-	% Buil sync data table
+	% Build sync data table
 	if exist('syncDataResTmp', 'var')
 		syncDataResTmp = [syncDataResTmp; syncDataTmp];
         else
@@ -357,13 +354,9 @@ elseif ~exist('syncDataVertical', 'var')
 end
 
 if strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'Yes')
-	preAdjustedTime = syncDataVertical.adjustedTime;
-	preXBeginning = syncDataVertical.xBeginning;
-	preXEnd = syncDataVertical.xEnd;
+	syncDataToUse = syncDataVertical;
 elseif strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'No')
-	preAdjustedTime = syncDataResultant.adjustedTime;
-	preXBeginning = syncDataResultant.xBeginning;
-	preXEnd = syncDataResultant.xEnd;
+	syncDataToUse = syncDataResultant;
 else
 	preAdjustedTime = [];
 	preXBeginning = [];
@@ -371,28 +364,19 @@ else
 end
 
 for i = 1:2%length(grfNames)
-	ID = ID;
 	grfFile = char(grfNames(i));
 	grfSignal = fZFilt(:, i);
 	grfTime = grfTmstp(:, i);
 	% Multiply by - 1 to correct for accelerometer orientation
 	accSignal = - 1 * aYFilt;
 	accTime = accTmstp;
-	sampFreqAcc = sampFreqAcc;
-	bodyMass = bodyMass;
-	accPlacement = accPlacement;
-	accType = accType;
-	% usePreSync = usePreSync;
-	usePreSync = 'No';
-	% goDirect = goDirect;
-	goDirect = 'No';
-	% preAdjustedTime = syncDataResultant.adjustedTime(i);
-	preAdjustedTime = [];
-	% preXBeginning = syncDataResultant.x_beginning(i);
-	preXBeginning = [];
-	% preXEnd = syncDataResultant.x_end(i);
-	preXEnd = [];
+	if strcmp(usePreSync, 'Yes')
+		preAdjustedTime = syncDataToUse.adjustedTime(i);
+		preXBeginning = syncDataToUse.xBeginning(i);
+		preXEnd = syncDataToUse.xEnd(i);
+	end
 
+	% Start synchronization
 	[syncDataTmp, extractedDataTmp] = syncSignals(ID, vector, grfFile, grfSignal, ...
 	                                              grfTime, accSignal, accTime, ...
 	                                              sampFreqAcc, bodyMass, ...
@@ -402,23 +386,23 @@ for i = 1:2%length(grfNames)
 	                                              preXBeginning, preXEnd);
 
 
+	% Build extracted data table
 	if exist('extractedDataVer', 'var')
 		extractedDataVer = [extractedDataVer; extractedDataTmp];
 	else
 		extractedDataVer = extractedDataTmp;
 	end
 
+	% Build sync data table
 	if exist('syncDataVerTmp', 'var')
 		syncDataVerTmp = [syncDataVerTmp; syncDataTmp];
         else
 		syncDataVerTmp = syncDataTmp;
 	end
 
-	if exist('usePreSync', 'var') && strcmp(usePreSync, 'No')
-		pause(5)
-	end
-	if exist('goDirect', 'var') && strcmp(goDirect, 'No')
-		pause(2)
+	% Pause to inspect results
+	if strcmp(usePreSync, 'No') || strcmp(goDirect, 'No')
+		pause(3)
 	end
 end
 
