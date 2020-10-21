@@ -28,5 +28,5 @@ function endEval = getEvalEnd(vector)
 	end
 
 	endBlock = endBlock - 1;
-	endEval = endblock * blockSize;
+	endEval = endBlock * blockSize;
 end
