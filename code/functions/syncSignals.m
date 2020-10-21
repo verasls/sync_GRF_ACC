@@ -155,7 +155,7 @@ pksGrfIdx = zeros(size(pksAcc));
 for i = 1:length(pksAcc)
 	idxMin = pksAccTime(i) - seconds(minDist);
 	idxMin = find(grfTime == idxMin);
-	idxMax = pksAccTime(i) - seconds(minDist);
+	idxMax = pksAccTime(i) + seconds(minDist);
 	idxMax = find(grfTime == idxMax);
 
 	pksGrf(i) = max(grfSignal(idxMin:idxMax));
