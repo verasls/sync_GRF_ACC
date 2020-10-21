@@ -54,7 +54,7 @@ ax.FontSize = 15;
 if strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'Yes')
 	adjustedTime = min(grfTime);
 else
-	adjustedTime = plot_slider(fig10, fig11);
+	adjustedTime = plotSlider(fig10, fig11);
 end
 lag = adjustedTime - min(grfTime);
 
