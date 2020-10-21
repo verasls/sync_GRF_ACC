@@ -1,45 +1,45 @@
-function adjusted_time = plot_slider(fig, plot_grf)
+function adjustedTime = plotSlider(fig, plotGrf)
 	% Create slider
-	fig_pos = get(fig, 'Position');
-	fig_l = fig_pos(1);
-	fig_b = fig_pos(2);
-	fig_w = fig_pos(3);
-	fig_h = fig_pos(4);
+	figPos = get(fig, 'Position');
+	figL = figPos(1);
+	figB = figPos(2);
+	figW = figPos(3);
+	figH = figPos(4);
 
-	sldr_width = 100;
-	sldr_height = 20;
-	sldr_left = fig_l + fig_w / 2 - sldr_width / 2;
-	sldr_bottom = 20;
+	sldrWidth = 100;
+	sldrHeight = 20;
+	sldrLeft = figL + figW / 2 - sldrWidth / 2;
+	sldrBottom = 20;
 
 	value = 0;
-	original_time = min(get(plot_grf, 'Xdata'));
+	originalTime = min(get(plotGrf, 'Xdata'));
 
 	uicontrol(fig, 'Style', 'slider', ...
-		  'Position', [sldr_left, sldr_bottom, sldr_width, sldr_height], ...
+		  'Position', [sldrLeft, sldrBottom, sldrWidth, sldrHeight], ...
 		  'Min', - 60, 'Max', 60, 'Value', value,...
-		  'Callback', {@slider_callback})
+		  'Callback', {@sliderCallback})
 
-	bttn_width = 100;
-	bttn_height = 20;
-	bttn_left = fig_w - 4 * bttn_width;
-	bttn_bottom = 20;
+	bttnWidth = 100;
+	bttnHeight = 20;
+	bttnLeft = figW - 4 * bttnWidth;
+	bttnBottom = 20;
 
 	uicontrol(fig, 'Style', 'pushbutton', ...
 		  'String', 'Continue', ...
-		  'Position', [bttn_left, bttn_bottom, bttn_width, bttn_height], ...
+		  'Position', [bttnLeft, bttnBottom, bttnWidth, bttnHeight], ...
 		  'Callback', 'uiresume(gcbf)')
 
 	uiwait
 
-	adjusted_time = min(get(plot_grf, 'Xdata'));
+	adjustedTime = min(get(plotGrf, 'Xdata'));
 
-	function slider_callback(hObj, event)
+	function sliderCallback(hObj, event)
 		value = round(get(hObj, 'Value') - value);
 		set(hObj, 'Value', value)
 
-		xdata = get(plot_grf, 'Xdata');
+		xData = get(plot_grf, 'Xdata');
 		adjust = seconds(value);
-		set(plot_grf, 'Xdata', xdata + adjust)
+		set(plotGrf, 'Xdata', xData + adjust)
 	end
 end
 
