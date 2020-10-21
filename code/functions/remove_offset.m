@@ -1,14 +1,14 @@
-function corrected_vector = remove_offset(original_vector, offset_vector, samp_freq)
+function correctedVector = removeOffset(originalVector, offsetVector, sampFreq)
 	% Remove end of file
-	last_line = get_eval_end(offset_vector);
-	offset_vector = offset_vector(1:last_line);
+	lastLine = getEvalEnd(offsetVector);
+	offsetVector = offsetVector(1:lastLine);
 
 	% Get offset time
-	time_offset = 0:last_line - 1;
-	time_offset = time_offset / samp_freq;
+	timeOffset = 0:lastLine - 1;
+	timeOffset = timeOffset / sampFreq;
 
 	% Get offset to be removed and correct original file
-	offset = mean(offset_vector);
+	offset = mean(offsetVector);
 
-	corrected_vector = original_vector - offset;
+	correctedVector = originalVector - offset;
 end
