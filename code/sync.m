@@ -2,185 +2,182 @@ clear
 clc
 close all
 
-functions_path = [pwd,'/functions'];
-addpath(functions_path);
-
-% Acceleration of gravity
-G = 9.81;
+functionsPath = [pwd,'/functions'];
+addpath(functionsPath);
 
 % Select data file through a GUI
 [file, path] = uigetfile('*.csv');
 
 % Get selected accelerometer placement
 if regexpi(file, 'ankle')
-	acc_placement = 'ankle';
+	accPlacement = 'ankle';
 elseif regexpi(file, 'back')
-	acc_placement = 'back';
+	accPlacement = 'back';
 elseif regexpi(file, 'waist')
-	acc_placement = 'waist';
+	accPlacement = 'waist';
 end
 % Get selected accelerometer type
 if regexpi(file, 'imu')
-	acc_type = 'imu';
+	accType = 'imu';
 elseif regexpi(file, 'raw')
-	acc_type = 'raw';
+	accType = 'raw';
 end
 % Get force plates files metadata
-grf_files = dir([path, '*.txt']);
+grfFiles = dir([path, '*.txt']);
 % Put file properties into a cell array
-grf_files = struct2cell(grf_files)';
+grfFiles = struct2cell(grfFiles)';
 % Remove offset file
-offset_idx = cellfun('isempty', regexp(grf_files(:, 1), '_vazio_'));
-offset_file = grf_files(~offset_idx, 1);
-grf_files = grf_files(offset_idx, :);
+offsetIdx = cellfun('isempty', regexp(grfFiles(:, 1), '_vazio_'));
+offsetFile = grfFiles(~offsetIdx, 1);
+grfFiles = grfFiles(offsetIdx, :);
 % Remove walking/running files
-run_idx = cellfun('isempty', regexp(grf_files(:, 1), 'km_'));
-grf_files = grf_files(run_idx, :);
+runIdx = cellfun('isempty', regexp(grfFiles(:, 1), 'km_'));
+grfFiles = grfFiles(runIdx, :);
 % Get last modification datetimes
-grf_files = sortrows(grf_files, 3);
-grf_dtms = datetime(grf_files(:, 3), 'Timezone', 'UTC', ...
-		    'Format', 'dd-MMM-yyyy HH:mm:ss');
+grfFiles = sortrows(grfFiles, 3);
+grfDtms = datetime(grfFiles(:, 3), 'Timezone', 'UTC', ...
+                   'Format', 'dd-MMM-yyyy HH:mm:ss');
 % Sort array by last modification time and get filenames
-grf_names = grf_files(:, 1);
+grfNames = grfFiles(:, 1);
 
 % Get start and end times based on the times found in the GRF files
-start_time = min(grf_dtms) - minutes(5);
-end_time = max(grf_dtms) + minutes(5);
+startTime = min(grfDtms) - minutes(5);
+endTime = max(grfDtms) + minutes(5);
 
 % Obtain ID variables and body mass
-file_ex = grf_names{1}; % Select a file to obtain the variables below
-ID = str2double(file_ex(end - 6:end - 4));
-trial = str2double(file_ex(end - 8:end - 8));
-body_mass_data = dlmread('../data/body_mass.txt', ',', 1, 0);
-ID_row = find(body_mass_data(:, 1) == ID);
-body_mass = round(body_mass_data(ID_row, 3), 2);
+fileEx = grfNames{1}; % Select a file to obtain the variables below
+ID = str2double(fileEx(end - 6:end - 4));
+trial = str2double(fileEx(end - 8:end - 8));
+bodyMassData = dlmread('../data/body_mass.txt', ',', 1, 0);
+idRow = find(bodyMassData(:, 1) == ID);
+bodyMass = round(bodyMassData(idRow, 3), 2);
 
 % Display subject info
 disp(['Selected subject: ID ', num2str(ID)])
-disp(['Subject body mass: ', num2str(body_mass), 'kg'])
+disp(['Subject body mass: ', num2str(bodyMass), 'kg'])
 disp(['Selected acceletometer file: ', file])
 
 % Sample frequency (Hz)
-samp_freq_grf = 1000;
-samp_freq_acc = 100;
-disp(['Accelerometer sampling frequency: ', num2str(samp_freq_acc), 'Hz'])
-disp(['Force platform sampling frequency: ', num2str(samp_freq_grf), 'Hz'])
+sampFreqGrf = 1000;
+sampFreqAcc = 100;
+disp(['Accelerometer sampling frequency: ', num2str(sampFreqAcc), 'Hz'])
+disp(['Force platform sampling frequency: ', num2str(sampFreqGrf), 'Hz'])
 
 % Read accelerometer data
 disp('Reading accelerometer data')
-acc_data = readtable([path, file], 'HeaderLines', 11, ...
-		     'ReadVariableNames', false);
+accData = readtable([path, file], 'HeaderLines', 11, ...
+                    'ReadVariableNames', false);
 
 % Format accelerometer timestamp variable
-acc_tmstp = table2cell(acc_data(:, 1));
+accTmstp = table2cell(accData(:, 1));
 if contains(file, 'RAW')
-	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', ...
-			     'Format', 'dd-MM-yyyy HH:mm:ss.S');
+	accTmstp = datetime(accTmstp, 'Timezone', 'UTC', ...
+	                    'Format', 'dd-MM-yyyy HH:mm:ss.S');
 elseif contains(file, 'IMU')
-	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', ...
-			     'Format', 'yyyy-MM-dd''T''HH:mm:ss.S');
-	acc_tmstp = datetime(acc_tmstp, 'Timezone', 'UTC', ...
-			     'Format', 'dd-MM-yyyy HH:mm:ss.S');
+	accTmstp = datetime(accTmstp, 'Timezone', 'UTC', ...
+	                    'Format', 'yyyy-MM-dd''T''HH:mm:ss.S');
+	accTmstp = datetime(accTmstp, 'Timezone', 'UTC', ...
+	                    'Format', 'dd-MM-yyyy HH:mm:ss.S');
 end
 
 % Get accelerometer data start and end time indices
-acc_start_idx = find(acc_tmstp == start_time);
-acc_end_idx = find(acc_tmstp == end_time);
+accStartIdx = find(accTmstp == startTime);
+accEndIdx = find(accTmstp == endTime);
 % Crop timestamp between these boundaries
-acc_tmstp = acc_tmstp(acc_start_idx:acc_end_idx);
+accTmstp = accTmstp(accStartIdx:accEndIdx);
 
 % Extract accelerometry data per axis
-aX = table2array(acc_data(acc_start_idx:acc_end_idx, 2));
-aY = table2array(acc_data(acc_start_idx:acc_end_idx, 3));
-aZ = table2array(acc_data(acc_start_idx:acc_end_idx, 4));
+aX = table2array(accData(accStartIdx:accEndIdx, 2));
+aY = table2array(accData(accStartIdx:accEndIdx, 3));
+aZ = table2array(accData(accStartIdx:accEndIdx, 4));
 
 % Read all force platform files
 disp('Reading force plates data')
-if isempty(offset_file)
+if isempty(offsetFile)
 	disp('No force plates offset file detected; offset not removed')
 else
 	disp('Reading offset file')
-	offset_data = dlmread(char(join([path, offset_file], '')));
-	[oX, oY, oZ] = deal(offset_data(:, 1), offset_data(:, 2), ...
-			    offset_data(:, 3));
+	offsetData = dlmread(char(join([path, offsetFile], '')));
+	[oX, oY, oZ] = deal(offsetData(:, 1), offsetData(:, 2), ...
+                        offsetData(:, 3));
 end
 
-fX = zeros(8000, size(grf_names, 1));
-fY = zeros(8000, size(grf_names, 1));
-fZ = zeros(8000, size(grf_names, 1));
-grf_tmstp = NaT(8000, size(grf_names, 1), 'TimeZone', 'UTC');
-for i = 1:size(grf_names)
-	grf_filename = [path, char(grf_names(i))];
-	grf_data = dlmread(grf_filename);
+fX = zeros(8000, size(grfNames, 1));
+fY = zeros(8000, size(grfNames, 1));
+fZ = zeros(8000, size(grfNames, 1));
+grfTmstp = NaT(8000, size(grfNames, 1), 'TimeZone', 'UTC');
+for i = 1:size(grfNames)
+	grfFilename = [path, char(grfNames(i))];
+	grfData = dlmread(grfFilename);
 	% Get data from plate 1 (GRF in N)
-	[X, Y, Z] = deal(grf_data(:, 1), grf_data(:, 2), grf_data(:, 3));
-	X = remove_offset(X, oX, samp_freq_grf);
-	Y = remove_offset(Y, oY, samp_freq_grf);
-	Z = remove_offset(Z, oZ, samp_freq_grf);
+	[X, Y, Z] = deal(grfData(:, 1), grfData(:, 2), grfData(:, 3));
+	X = remove_offset(X, oX, sampFreqGrf);
+	Y = remove_offset(Y, oY, sampFreqGrf);
+	Z = remove_offset(Z, oZ, sampFreqGrf);
 
 	% Resample force plates data to the accelerometer sampling frequency
-	X_resamp = resample(X, samp_freq_acc, samp_freq_grf);
-	Y_resamp = resample(Y, samp_freq_acc, samp_freq_grf);
-	Z_resamp = resample(Z, samp_freq_acc, samp_freq_grf);
+	xResamp = resample(X, sampFreqAcc, sampFreqGrf);
+	yResamp = resample(Y, sampFreqAcc, sampFreqGrf);
+	zResamp = resample(Z, sampFreqAcc, sampFreqGrf);
 
 	% Create timestamp
-	n_sec = size(grf_data, 1) / samp_freq_grf;
-	t1 = grf_dtms(i);
-	t2 = t1 + seconds(n_sec);
-	tmstp = t1:seconds(1 / samp_freq_acc):t2;
+	nSec = size(grfData, 1) / sampFreqGrf;
+	t1 = grfDtms(i);
+	t2 = t1 + seconds(nSec);
+	tmstp = t1:seconds(1 / sampFreqAcc):t2;
 	tmstp = tmstp';
 	tmstp = tmstp(1:end - 1);
 
 	% Append values to final arrays
-	fX(:, i) = X_resamp;
-	fY(:, i) = Y_resamp;
-	fZ(:, i) = Z_resamp;
-	grf_tmstp(:, i) = tmstp;
+	fX(:, i) = xResamp;
+	fY(:, i) = yResamp;
+	fZ(:, i) = zResamp;
+	grfTmstp(:, i) = tmstp;
 end
-samp_freq_grf = samp_freq_acc;
+sampFreqGrf = sampFreqAcc;
 disp(['Ground reaction force signal was resampled to: ', ...
-     num2str(samp_freq_grf), 'Hz']);
+     num2str(sampFreqGrf), 'Hz']);
 
 % Filter accelerometer and force plates signals
 % Create the lowpass filter
 n = 4;  % Filter order
 cutoff = 20;  % Cut-off frequency (Hz)
-fnyq = samp_freq_acc / 2;  % Nyquist frequency
-Wn = cutoff / fnyq;
+fnyq = sampFreqAcc / 2;  % Nyquist frequency
+wn = cutoff / fnyq;
 
-[z, p, k] = butter(n, Wn, 'low');
+[z, p, k] = butter(n, wn, 'low');
 [sos, g] = zp2sos(z, p, k);
 
 disp('Filtering acceleration signal')
-aX_filt = filtfilt(sos, g, aX);
-aY_filt = filtfilt(sos, g, aY);
-aZ_filt = filtfilt(sos, g, aZ);
+aXFilt = filtfilt(sos, g, aX);
+aYFilt = filtfilt(sos, g, aY);
+aZFilt = filtfilt(sos, g, aZ);
 
 disp('Filtering ground reaction force signal')
-fX_filt = filtfilt(sos, g, fX);
-fY_filt = filtfilt(sos, g, fY);
-fZ_filt = filtfilt(sos, g, fZ);
+fXFilt = filtfilt(sos, g, fX);
+fYFilt = filtfilt(sos, g, fY);
+fZFilt = filtfilt(sos, g, fZ);
 % Compute resultant vectors
 disp('Computing resultant vectors')
 aR = sqrt(aX.^2 + aY.^2 + aZ.^2);
 fR = sqrt(fX.^2 + fY.^2 + fZ.^2);
-aR_filt = sqrt(aX_filt.^2 + aY_filt.^2 + aZ_filt.^2);
-fR_filt = sqrt(fX_filt.^2 + fY_filt.^2 + fZ_filt.^2);
+aRFilt = sqrt(aXFilt.^2 + aYFilt.^2 + aZFilt.^2);
+fRFilt = sqrt(fXFilt.^2 + fYFilt.^2 + fZFilt.^2);
 
 % Plot the filtered and unfiltered signals
 figure('NAME', 'Filtered and unfiltered signals')
 set(gcf, 'Position', get(0, 'Screensize'));
 subplot(2, 1, 1)
-plot(acc_tmstp, aR)
+plot(accTmstp, aR)
 hold on
-plot(acc_tmstp, aR_filt)
+plot(accTmstp, aRFilt)
 ylabel('Resultant acceleration (g)', 'FontSize', 14)
 xlabel('Timestamp', 'FontSize', 14)
 title('Acceleration signal', 'FontSize', 18)
 subplot(2, 1, 2)
-plot(grf_tmstp, fR, '-', 'color', [0.0000 0.4470 0.7419])
+plot(grfTmstp, fR, '-', 'color', [0.0000 0.4470 0.7419])
 hold on
-plot(grf_tmstp, fR_filt, '-', 'color', [0.8500 0.3250 0.0980])
+plot(grfTmstp, fRFilt, '-', 'color', [0.8500 0.3250 0.0980])
 ylabel('Resultant ground reaction force (N)', 'FontSize', 14)
 xlabel('Timestamp', 'FontSize', 14)
 title('Ground reaction force signal', 'FontSize', 18)
@@ -192,356 +189,129 @@ disp('----------------------------------------')
 disp('------------RESULTANT VECTOR------------')
 disp('----------------------------------------')
 disp(' ')
+vector = 'resultant';
 % Check if there is a sync_data .mat file available and ask to use it
-if ~isempty(dir([path, 'sync_data_', acc_placement, '_', acc_type, '.mat']))
-	to_load = dir([path, 'sync_data_', acc_placement, '_', acc_type, '*.mat']);
-	to_load = to_load.name;
-	go_direct = 'Yes';
-	use_pre_sync = questdlg(['A previous synchronization was found', ...
-	                        ' for the resultant vector of the', ...
-				' selected accelerometer placement and', ...
-				' type. Do you want to use it?'], ...
-				'', 'No', 'Yes', 'Yes');
-	if strcmp(use_pre_sync, 'Yes')
-		load([path, to_load])
-		pre_adjusted_time = sync_data_resultant.adjusted_time;
-	end
-elseif ~isempty(dir([path, 'sync_data_', acc_placement, '*.mat']))
-	to_load = dir([path, 'sync_data_', acc_placement, '*.mat']);
-	to_load = to_load.name;
-	go_direct = 'No';
-	use_pre_sync = questdlg(['A previous synchronization was found', ...
-	                        ' for the resultant vector of the', ...
-				' selected accelerometer placement.', ...
-				' Do you want to use it?'], ...
-				'', 'No', 'Yes', 'Yes');
-	if strcmp(use_pre_sync, 'Yes')
-		load([path, to_load])
-		pre_adjusted_time = sync_data_resultant.adjusted_time;
-	end
-elseif ~isempty(dir([path, 'sync_data_*', acc_type, '.mat']))
-	to_load = dir([path, 'sync_data_*', acc_type, '.mat']);
-	to_load = to_load.name;
-	go_direct = 'No';
-	use_pre_sync = questdlg(['A previous synchronization was found', ...
-	                        ' for the resultant vector of the', ...
-				' selected accelerometer type.', ...
-				' Do you want to use it?'], ...
-				'', 'No', 'Yes', 'Yes');
-	if strcmp(use_pre_sync, 'Yes')
-		load([path, to_load])
-		pre_adjusted_time = sync_data_resultant.adjusted_time;
-	end
+if ~isempty(dir([path, 'sync_data_', accPlacement, '_', accType, '.mat']))
+	toLoad = dir([path, 'sync_data_', accPlacement, '_', accType, '*.mat']);
+	toLoad = toLoad.name;
+	goDirect = 'Yes';
+	usePreSync = questdlg(['A previous synchronization was found', ...
+	                      ' for the resultant vector of the', ...
+	                      ' selected accelerometer placement and', ...
+	                      ' type. Do you want to use it?'], ...
+	                      '', 'No', 'Yes', 'Yes');
+elseif ~isempty(dir([path, 'sync_data_', accPlacement, '*.mat']))
+	toLoad = dir([path, 'sync_data_', accPlacement, '*.mat']);
+	toLoad = toLoad.name;
+	goDirect = 'No';
+	usePreSync = questdlg(['A previous synchronization was found', ...
+	                      ' for the resultant vector of the', ...
+	                      ' selected accelerometer placement.', ...
+	                      ' Do you want to use it?'], ...
+	                      '', 'No', 'Yes', 'Yes');
+elseif ~isempty(dir([path, 'sync_data_*', accType, '.mat']))
+	toLoad = dir([path, 'sync_data_*', accType, '.mat']);
+	toLoad = toLoad.name;
+	goDirect = 'No';
+	usePreSync = questdlg(['A previous synchronization was found', ...
+	                      ' for the resultant vector of the', ...
+	                      ' selected accelerometer type.', ...
+	                      ' Do you want to use it?'], ...
+	                      '', 'No', 'Yes', 'Yes');
+else
+	usePreSync = 'No';
+	goDirect = 'No';
 end
 
-for i = 1:2%length(grf_names)
-	grf_data = fR_filt(:, i);
-	grf_time = grf_tmstp(:, i);
-	if exist('pre_adjusted_time', 'var')
-		lag = pre_adjusted_time(i) - min(grf_time);
-		grf_time = grf_time + lag;
+if strcmp(usePreSync, 'Yes')
+	load([path, toLoad])
+	preAdjustedTime = syncDataResultant.adjustedTime;
+	preXBeginning = syncDataResultant.xBeginning;
+	preXEnd = syncDataResultant.xEnd;
+else
+	preAdjustedTime = [];
+	preXBeginning = [];
+	preXEnd = [];
+end
+
+for i = 1:2%length(grfNames)
+	grfFile = char(grfNames(i));
+	grfSignal = fRFilt(:, i);
+	grfTime = grfTmstp(:, i);
+	accSignal = aRFilt;
+	accTime = accTmstp;
+	if strcmp(usePreSync, 'Yes')
+		preAdjustedTime = preAdjustedTime(i);
+		preXBeginning = preXBeginning(i);
+		preXEnd = preXEnd(i);
 	end
 
-	% Crop accelerometer data around the time of the force plate data
-	% Get start and end time indices
-	start_time = min(grf_time) - minutes(5);
-	end_time = max(grf_time) + minutes(5);
-	if start_time < min(acc_tmstp)
-		start_idx = 1;
-	else	
-		start_idx = find(acc_tmstp == start_time);
-	end
-	if end_time > max(acc_tmstp)
-		end_idx = length(acc_tmstp);
+	% Start synchronization
+	[syncDataTmp, extractedDataTmp] = syncSignals(ID, vector, grfFile, grfSignal, ...
+	                                              grfTime, accSignal, accTime, ...
+	                                              sampFreqAcc, bodyMass, ...
+	                                              accPlacement, accType, ...
+	                                              usePreSync, goDirect, ...
+	                                              preAdjustedTime, ...
+	                                              preXBeginning, preXEnd);
+
+	% Build extracted data table
+	if exist('extractedDataRes', 'var')
+		extractedDataRes = [extractedDataRes; extractedDataTmp];
 	else
-		end_idx = find(acc_tmstp == end_time);
-	end
-	% Crop accelerometer timestamp and filtered resultant vector
-	acc_data = aR_filt(start_idx:end_idx);
-	acc_time = acc_tmstp(start_idx:end_idx);
-	% Normalize
-	grf_raw_mean = mean(grf_data);
-	grf_raw_stdv = std(grf_data);
-	grf_data = ((grf_data - grf_raw_mean) / grf_raw_stdv);
-	acc_raw_mean = mean(acc_data);
-	acc_raw_stdv = std(acc_data);
-	acc_data = ((acc_data - acc_raw_mean) / acc_raw_stdv);
-
-	% Plot ground reaction force and acceleration signals to synchronize
-	filename = char(grf_names(i));	
-	fig10 = figure('NAME', ['Plot slider (', filename, ...
-	               ') - Resultant vector']);
-	set(gcf, 'Position', get(0, 'Screensize'));
-	plot(acc_time, acc_data)
-	xticks(acc_time(1):minutes(1):acc_time(end));
-	hold on
-	fig11 = plot(grf_time, grf_data);
-	hold off
-	title({'Adjust the plots using the buttons bellow', ...
-	       'Press "Continue" when done'})
-	legend('Acceleration', 'Ground reaction force')
-	ax = gca;
-	ax.FontSize = 15;
-
-	if exist('use_pre_sync', 'var')
-		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-			adjusted_time = min(grf_time);
-		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-			adjusted_time = plot_slider(fig10, fig11);
-		elseif strcmp(use_pre_sync, 'No')
-			adjusted_time = plot_slider(fig10, fig11);
-		end
-	else
-		adjusted_time = plot_slider(fig10, fig11);
-	end
-	lag = adjusted_time - min(grf_time);
-
-	% Make a new plot with the adjusted_time
-	% Adjust the grf timestamp
-	grf_time = grf_time + lag;
-	% Adjust the acc timestamp
-	start_time = min(grf_time) - minutes(0.5);
-	end_time = max(grf_time) + minutes(0.5);
-	start_idx = find(acc_time == start_time);
-	end_idx = find(acc_time == end_time);
-	% Crop accelerometer timestamp and filtered resultant vector
-	acc_data = acc_data(start_idx:end_idx);
-	acc_time = acc_time(start_idx:end_idx);
-
-	figure('NAME', ['Time-adjusted signals (', filename, ...
-	       ') - Resultant vector'])
-	set(gcf, 'Position', get(0, 'Screensize'));
-	plot(acc_time, acc_data)
-	hold on
-	plot(grf_time, grf_data)
-	legend('Acceleration', 'Ground reaction force')
-	ax = gca;
-	ax.FontSize = 15;
-
-
-	% Find peaks in the acceleration signal
-	min_height = 4;
-	min_dist = 3;
-	[pks_acc, pks_acc_idx] = find_signal_peaks(min_height, min_dist, ...
-						   samp_freq_acc, acc_data);
-	pks_acc_time = acc_time(pks_acc_idx);
-
-	% Plot the acceleration peaks
-	figure('NAME', ['Define region of interest (', filename, ...
-	       ') - Resultant vector'])
-	set(gcf, 'Position', get(0, 'Screensize'));
-	plot(acc_time, acc_data)
-	hold on
-	plot(grf_time, grf_data)
-	legend('Acceleration', 'Ground reaction force')
-	ax = gca;
-	ax.FontSize = 15;
-	plot(pks_acc_time, pks_acc, 'rx', 'MarkerSize', 10, ...
-	     'DisplayName', 'Acceleration peaks')
-
-
-	% Select region of interest
-	y_lim = get(gca, 'YLim');
-	% Plot the pre-defined regions of interest
-	if exist('use_pre_sync', 'var')
-		if strcmp(use_pre_sync, 'Yes')	
-			pre_x_beginning = sync_data_resultant.x_beginning(i);
-			line([pre_x_beginning, pre_x_beginning], ...
-			     y_lim, 'Color', 'k', ...
-			     'LineWidth', 2, 'HandleVisibility', 'off')
-			pre_x_end = sync_data_resultant.x_end(i);
-			line([pre_x_end, pre_x_end], ...
-			     y_lim, 'Color', 'k', 'LineWidth', 2, ...
-			     'HandleVisibility', 'off')
-		end
-	end
-	% Beginning
-	title('Click on the BEGINNING of the region of interest')
-	if exist('use_pre_sync', 'var')
-		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-			x_beginning = pre_x_beginning;
-		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-			[x_beginning, y] = ginput(1);
-			x_beginning = num2ruler(x_beginning, ax.XAxis);
-		elseif strcmp(use_pre_sync, 'No')
-			[x_beginning, y] = ginput(1);
-			x_beginning = num2ruler(x_beginning, ax.XAxis);
-		end
-	else
-		[x_beginning, y] = ginput(1);
-		x_beginning = num2ruler(x_beginning, ax.XAxis);
-	end
-	line([x_beginning, x_beginning], y_lim, 'Color', 'k', ...
-	     'LineWidth', 2, 'HandleVisibility', 'off')
-	% End
-	title('Click on the END of the region of interest')
-	if exist('use_pre_sync', 'var')
-		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-			x_end = pre_x_end;
-		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-			[x_end, y] = ginput(1);
-			x_end = num2ruler(x_end, ax.XAxis);
-		elseif strcmp(use_pre_sync, 'No')
-			[x_end, y] = ginput(1);
-			x_end = num2ruler(x_end, ax.XAxis);
-		end
-	else
-		[x_end, y] = ginput(1);
-		x_end = num2ruler(x_end, ax.XAxis);
-	end
-	line([x_end, x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
-	     'HandleVisibility', 'off')
-
-	% Remove the peaks out of the region of interest
-	pks_keep = pks_acc_time > x_beginning & pks_acc_time < x_end;
-	pks_acc = pks_acc(pks_keep);
-	pks_acc_time = pks_acc_time(pks_keep);
-	pks_acc_idx = pks_acc_idx(pks_keep);
-
-	figure('NAME', ['Peaks in the region of interest (', filename, ...
-	       ') - Resultant vector'])
-	set(gcf, 'Position', get(0, 'Screensize'));
-	plot(acc_time, acc_data)
-	hold on
-	plot(grf_time, grf_data)
-	plot(pks_acc_time, pks_acc, 'rx', 'MarkerSize', 10)
-	line([x_beginning, x_beginning], y_lim, 'Color', 'k', 'LineWidth', 2)
-	line([x_end, x_end], y_lim, 'Color', 'k', 'LineWidth', 2)
-	legend('Acceleration', 'Ground reaction force', 'Acceleration peaks')
-	ax = gca;
-	ax.FontSize = 15;
-
-	% Find peaks in the ground reaction force signal
-	pks_grf = zeros(size(pks_acc));
-	pks_grf_idx = zeros(size(pks_acc));
-	for j = 1:length(pks_acc)
-		idx_min = pks_acc_time(j) - seconds(min_dist);
-		idx_max = pks_acc_time(j) + seconds(min_dist);
-
-		idx_min = find(grf_time == idx_min);
-		idx_max = find(grf_time == idx_max);
-
-		pks_grf(j) = max(grf_data(idx_min:idx_max));
-		pks_grf_idx(j) = find(grf_data(idx_min:idx_max) == pks_grf(j), ...
-				      1, 'first') + idx_min - 1;
-	end
-	pks_grf_time = grf_time(pks_grf_idx);
-
-	plot(pks_grf_time, pks_grf, 'gx', 'MarkerSize', 10, ...
-	     'DisplayName', 'Ground reaction force peaks')
-	
-	% Get values
-	if ~isempty(regexp(filename, '\d_\d*cm', 'once'))
-		jump_type = {'drop jumps'};
-	elseif ~isempty(regexp(filename, '_Box_Jumps_', 'once'))
-		jump_type = {'box jumps'};
-	elseif ~isempty(regexp(filename, '\d_Jumps', 'once'))
-		jump_type = {'continuous jumps'};
+		extractedDataRes = extractedDataTmp;
 	end
 
-	jump_height = char(regexp(filename, '.\dcm', 'Match'));
-	jump_height = str2double(regexp(jump_height, '\d*', 'Match'));
-
-	vector = {'resultant'};
-	grf_file = grf_names(i);
-	n_peaks = length(pks_grf);
-	pACC_g_mean = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
-	pACC_g_sd = std(acc_raw_mean + pks_acc * acc_raw_stdv);
-	pACC_ms2_mean = pACC_g_mean * G;
-	pACC_ms2_sd = pACC_g_sd * G;
-	pGRF_N_mean = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
-	pGRF_N_sd = std(grf_raw_mean + pks_grf * grf_raw_stdv);
-	pGRF_BW_mean = pGRF_N_mean / (body_mass * G);
-	pGRF_BW_sd = pGRF_N_sd / (body_mass * G);
-
-	disp('----------------------------------------')
-	disp(' ')
-	disp(['File: ', filename])
-	disp(['Jump type: ', char(jump_type)])
-	disp(['Jump height: ', num2str(jump_height), 'cm'])
-	disp('Resultant vector')
-	disp(['Number of peaks: ', num2str(n_peaks)])
-	disp(['Average acceleration peak (m/s2): ', ...
-	     num2str(round(pACC_ms2_mean, 1))])
-	disp(['Average acceleration peak (g): ', ...
-	     num2str(round(pACC_g_mean, 1))])
-	disp(['Average ground reaction force peak (N): ', ...
-	     num2str(round(pGRF_N_mean, 1))])
-	disp(['Average ground reaction force peak (BW): ', ...
-	     num2str(round(pGRF_BW_mean, 1))])
-	disp(' ')
-
-	% Put values in a table
-	res_data_tmp = table(ID, grf_file, acc_placement, acc_type, ...
-			     jump_type, jump_height, body_mass,vector, ...
-			     n_peaks, pACC_g_mean, pACC_g_sd, pACC_ms2_mean, ...
-			     pACC_ms2_sd, pGRF_N_mean, pGRF_N_sd, ...
-			     pGRF_BW_mean, pGRF_BW_sd);
-
-	if exist('res_data', 'var')
-		res_data = [res_data; res_data_tmp];
-	else
-		res_data = res_data_tmp;
-	end
-
-	% Get and write synchronization values
-	sync_data_tmp = table({filename}, adjusted_time, x_beginning, x_end, ...
-			      {pks_acc_time}, {pks_grf_time});
-	sync_data_tmp.Properties.VariableNames{1} = 'filename';
-	sync_data_tmp.Properties.VariableNames{5} = 'pks_acc_time';
-	sync_data_tmp.Properties.VariableNames{6} = 'pks_grf_time';
-
-	if exist('sync_data_res_tmp', 'var')
-		sync_data_res_tmp = [sync_data_res_tmp; sync_data_tmp];
+	% Buil sync data table
+	if exist('syncDataResTmp', 'var')
+		syncDataResTmp = [syncDataResTmp; syncDataTmp];
         else
-		sync_data_res_tmp = sync_data_tmp;
+		syncDataResTmp = syncDataTmp;
 	end
 
-	if exist('use_pre_sync', 'var') && strcmp(use_pre_sync, 'No')
-		pause(5)
-	end
-	if exist('go_direct', 'var') && strcmp(go_direct, 'No')
-		pause(2)
+	% Pause to inspect results
+	if strcmp(usePreSync, 'No') || strcmp(goDirect, 'No')
+		pause(3)
 	end
 end
 
 % Save sync data into a .mat file
 if contains(file, 'ankle', 'IgnoreCase', true)
 	if contains(file, 'imu', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_ankle_imu.mat'];
+		syncFilename = [path, 'sync_data_ankle_imu.mat'];
 	elseif contains(file, 'raw', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_ankle_raw.mat'];
+		syncFilename = [path, 'sync_data_ankle_raw.mat'];
 	end
 elseif contains(file, 'back', 'IgnoreCase', true)
 	if contains(file, 'imu', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_back_imu.mat'];
+		syncFilename = [path, 'sync_data_back_imu.mat'];
 	elseif contains(file, 'raw', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_back_raw.mat'];
+		syncFilename = [path, 'sync_data_back_raw.mat'];
 	end
 elseif contains(file, 'waist', 'IgnoreCase', true)
 	if contains(file, 'imu', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_waist_imu.mat'];
+		syncFilename = [path, 'sync_data_waist_imu.mat'];
 	elseif contains(file, 'raw', 'IgnoreCase', true)
-		sync_filename = [path, 'sync_data_waist_raw.mat'];
+		syncFilename = [path, 'sync_data_waist_raw.mat'];
 	end
 end
 
-sync_data_resultant = sync_data_res_tmp;
-if exist(sync_filename, 'file')
-	save(sync_filename, 'sync_data_resultant', '-append')
+syncDataResultant = syncDataResTmp;
+if exist(syncFilename, 'file')
+	save(syncFilename, 'syncDataResultant', '-append')
 else
-	save(sync_filename, 'sync_data_resultant')
+	save(syncFilename, 'syncDataResultant')
 end
 
 
 % Read sync_data .mat file and check whether there is an object with vertical
 % vector sync_data
-sync_matfile = whos('-file', sync_filename);
-if any(contains({sync_matfile.name}, 'vertical'))
-	load(sync_filename)
-	pre_adjusted_time = sync_data_vertical.adjusted_time;
+syncMatfile = whos('-file', syncFilename);
+if any(contains({syncMatfile.name}, 'vertical'))
+	load(syncFilename)
+	preAdjustedTime = syncDataVertical.adjustedTime;
 else
-	pre_adjusted_time = sync_data_resultant.adjusted_time;
+	preAdjustedTime = syncDataResultant.adjustedTime;
 end
 
 % % Start synchronization process for the vertical vector
@@ -550,334 +320,117 @@ disp('----------------------------------------')
 disp('------------VERTICAL VECTOR-------------')
 disp('----------------------------------------')
 disp(' ')
+vector = 'vertical';
 % Check if there is a sync_data .mat file available and ask to use it
-if exist('sync_data_vertical', 'var') && contains(to_load, acc_type) && ...
-	contains(to_load, acc_placement)
-	go_direct = 'Yes';
-	use_pre_sync = questdlg(['A previous synchronization was found', ...
-	                        ' for the vertical vector of the selected', ...
-				' accelerometer placement and type.', ...
-				' Do you want to use it?'], ...
-				'', 'No', 'Yes', 'Yes');
-elseif exist('sync_data_vertical', 'var') && ~contains(to_load, acc_type) && ...
-	contains(to_load, acc_placement)
-	go_direct = 'No';
-	use_pre_sync = questdlg(['A previous synchronization was found', ...
-	                        ' for the vertical vector of the selected', ...
-				' accelerometer placement.', ...
-				' Do you want to use it?'], ...
-				'', 'No', 'Yes', 'Yes');
-elseif exist('sync_data_vertical', 'var') && contains(to_load, acc_type) && ...
-	~contains(to_load, acc_placement)
-	go_direct = 'No';
-	use_pre_sync = questdlg(['A previous synchronization was found', ...
-	                        ' for the vertical vector of the selected', ...
-				' accelerometer type.', ...
-				' Do you want to use it?'], ...
-				'', 'No', 'Yes', 'Yes');
-elseif ~exist('sync_data_vertical', 'var')
-	go_direct = 'No';
-	use_pre_sync = questdlg(['No previous synchronization was found', ...
-	                        ' for the vertical vector of the selected', ...
-				' accelerometer placement. Do you want to', ...
-				' use the synchronization of the', ...
-				' resultant vector?'], ...
-				'', 'No', 'Yes', 'Yes');
+if exist('syncDataVertical', 'var') && contains(toLoad, accType) && ...
+	contains(toLoad, accPlacement)
+	goDirect = 'Yes';
+	usePreSync = questdlg(['A previous synchronization was found', ...
+	                      ' for the vertical vector of the selected', ...
+	                      ' accelerometer placement and type.', ...
+	                      ' Do you want to use it?'], ...
+	                      '', 'No', 'Yes', 'Yes');
+elseif exist('syncDataVertical', 'var') && ~contains(toLoad, accType) && ...
+	contains(toLoad, accPlacement)
+	goDirect = 'No';
+	usePreSync = questdlg(['A previous synchronization was found', ...
+	                      ' for the vertical vector of the selected', ...
+	                      ' accelerometer placement.', ...
+	                      ' Do you want to use it?'], ...
+	                      '', 'No', 'Yes', 'Yes');
+elseif exist('syncDataVertical', 'var') && contains(toLoad, accType) && ...
+	~contains(toLoad, accPlacement)
+	goDirect = 'No';
+	usePreSync = questdlg(['A previous synchronization was found', ...
+	                      ' for the vertical vector of the selected', ...
+	                      ' accelerometer type.', ...
+	                      ' Do you want to use it?'], ...
+	                      '', 'No', 'Yes', 'Yes');
+elseif ~exist('syncDataVertical', 'var')
+	goDirect = 'No';
+	usePreSync = questdlg(['No previous synchronization was found', ...
+	                      ' for the vertical vector of the selected', ...
+	                      ' accelerometer placement. Do you want to', ...
+	                      ' use the synchronization of the', ...
+	                      ' resultant vector?'], ...
+	                      '', 'No', 'Yes', 'Yes');
 end
 
-if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-	pre_adjusted_time = sync_data_vertical.adjusted_time;
-elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-	pre_adjusted_time = sync_data_resultant.adjusted_time;
+if strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'Yes')
+	preAdjustedTime = syncDataVertical.adjustedTime;
+	preXBeginning = syncDataVertical.xBeginning;
+	preXEnd = syncDataVertical.xEnd;
+elseif strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'No')
+	preAdjustedTime = syncDataResultant.adjustedTime;
+	preXBeginning = syncDataResultant.xBeginning;
+	preXEnd = syncDataResultant.xEnd;
+else
+	preAdjustedTime = [];
+	preXBeginning = [];
+	preXEnd = [];
 end
 
-for i = 1:2%length(grf_names)
-	grf_data = fZ_filt(:, i);
-	grf_time = grf_tmstp(:, i);
-	if strcmp(use_pre_sync, 'Yes')
-		lag = pre_adjusted_time(i) - min(grf_time);
-		grf_time = grf_time + lag;
-	end
+for i = 1:2%length(grfNames)
+	ID = ID;
+	grfFile = char(grfNames(i));
+	grfSignal = fZFilt(:, i);
+	grfTime = grfTmstp(:, i);
+	% Multiply by - 1 to correct for accelerometer orientation
+	accSignal = - 1 * aYFilt;
+	accTime = accTmstp;
+	sampFreqAcc = sampFreqAcc;
+	bodyMass = bodyMass;
+	accPlacement = accPlacement;
+	accType = accType;
+	% usePreSync = usePreSync;
+	usePreSync = 'No';
+	% goDirect = goDirect;
+	goDirect = 'No';
+	% preAdjustedTime = syncDataResultant.adjustedTime(i);
+	preAdjustedTime = [];
+	% preXBeginning = syncDataResultant.x_beginning(i);
+	preXBeginning = [];
+	% preXEnd = syncDataResultant.x_end(i);
+	preXEnd = [];
 
-	% Crop accelerometer data around the time of the force plate data
-	% Get start and end time indices
-	start_time = min(grf_time) - minutes(5);
-	end_time = max(grf_time) + minutes(5);
-	if start_time < min(acc_tmstp)
-		start_idx = 1;
+	[syncDataTmp, extractedDataTmp] = syncSignals(ID, vector, grfFile, grfSignal, ...
+	                                              grfTime, accSignal, accTime, ...
+	                                              sampFreqAcc, bodyMass, ...
+	                                              accPlacement, accType, ...
+	                                              usePreSync, goDirect, ...
+	                                              preAdjustedTime, ...
+	                                              preXBeginning, preXEnd);
+
+
+	if exist('extractedDataVer', 'var')
+		extractedDataVer = [extractedDataVer; extractedDataTmp];
 	else
-		start_idx = find(acc_tmstp == start_time);
-	end
-	if end_time > max(acc_tmstp)
-		end_idx = length(acc_tmstp);
-	else
-		end_idx = find(acc_tmstp == end_time);
-	end
-	% Crop accelerometer timestamp and filtered resultant vector
-	% Multiply aY_filt vector to correct for acccelerometer orientation
-	acc_data = - 1 * aY_filt(start_idx:end_idx);
-	acc_time = acc_tmstp(start_idx:end_idx);
-
-	% Normalize
-	grf_raw_mean = mean(grf_data);
-	grf_raw_stdv = std(grf_data);
-	grf_data = ((grf_data - grf_raw_mean) / grf_raw_stdv);
-	acc_raw_mean = mean(acc_data);
-	acc_raw_stdv = std(acc_data);
-	acc_data = ((acc_data - acc_raw_mean) / acc_raw_stdv);
-
-	% Plot ground reaction force and acceleration signals to synchronize
-	filename = char(grf_names(i));
-	fig10 = figure('NAME', ['Plot slider (', filename, ...
-	               ') - Vertical vector']);
-	set(gcf, 'Position', get(0, 'Screensize'));
-	plot(acc_time, acc_data)
-	xticks(acc_time(1):minutes(1):acc_time(end));
-	hold on
-	fig11 = plot(grf_time, grf_data);
-	hold off
-	title({'Adjust the plots using the buttons bellow', ...
-	       'Press "Continue" when done'})
-	legend('Acceleration', 'Ground reaction force')
-	ax = gca;
-	ax.FontSize = 15;
-
-	if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-		adjusted_time = min(grf_time);
-	elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-		adjusted_time = plot_slider(fig10, fig11);
-	elseif strcmp(use_pre_sync, 'No')
-		adjusted_time = plot_slider(fig10, fig11);
-	end
-	lag = adjusted_time - min(grf_time);
-
-	% Make a new plot with the adjusted_time
-	% Adjust the grf timestamp
-	grf_time = grf_time + lag;
-	% Adjust the acc timestamp
-	start_time = min(grf_time) - minutes(0.5);
-	end_time = max(grf_time) + minutes(0.5);
-	start_idx = find(acc_time == start_time);
-	end_idx = find(acc_time == end_time);
-	% Crop accelerometer timestamp and filtered resultant vector
-	acc_data = acc_data(start_idx:end_idx);
-	acc_time = acc_time(start_idx:end_idx);
-
-	figure('NAME', ['Time-adjusted signals (', filename, ...
-	       ') - Vertical vector'])
-	set(gcf, 'Position', get(0, 'Screensize'));
-	plot(acc_time, acc_data)
-	hold on
-	plot(grf_time, grf_data)
-	legend('Acceleration', 'Ground reaction force')
-	ax = gca;
-	ax.FontSize = 15;
-
-
-	% Find peaks in the acceleration signal
-	min_height = 4;
-	min_dist = 3;
-	[pks_acc, pks_acc_idx] = find_signal_peaks(min_height, min_dist, ...
-						   samp_freq_acc, acc_data);
-	pks_acc_time = acc_time(pks_acc_idx);
-
-	% Plot the acceleration peaks
-	figure('NAME', ['Define region of interest (', filename, ...
-	       ') - Vertical vector'])
-	set(gcf, 'Position', get(0, 'Screensize'));
-	plot(acc_time, acc_data)
-	hold on
-	plot(grf_time, grf_data)
-	legend('Acceleration', 'Ground reaction force')
-	ax = gca;
-	ax.FontSize = 15;
-	plot(pks_acc_time, pks_acc, 'rx', 'MarkerSize', 10, ...
-	     'DisplayName', 'Acceleration peaks')
-
-
-	% Select region of interest
-	y_lim = get(gca, 'YLim');
-	% Plot the pre-defined regions of interest
-	if exist('use_pre_sync', 'var')
-		if strcmp(use_pre_sync, 'Yes')	&& strcmp(go_direct, 'Yes')
-			pre_x_beginning = sync_data_vertical.x_beginning(i);
-			line([pre_x_beginning, pre_x_beginning], ...
-			     y_lim, 'Color', 'k', ...
-			     'LineWidth', 2, 'HandleVisibility', 'off')
-			pre_x_end = sync_data_vertical.x_end(i);
-			line([pre_x_end, pre_x_end], ...
-			     y_lim, 'Color', 'k', 'LineWidth', 2, ...
-			     'HandleVisibility', 'off')
-		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-			pre_x_beginning = sync_data_resultant.x_beginning(i);
-			line([pre_x_beginning, pre_x_beginning], ...
-			     y_lim, 'Color', 'k', ...
-			     'LineWidth', 2, 'HandleVisibility', 'off')
-			pre_x_end = sync_data_resultant.x_end(i);
-			line([pre_x_end, pre_x_end], ...
-			     y_lim, 'Color', 'k', 'LineWidth', 2, ...
-			     'HandleVisibility', 'off')
-		end
-	end
-	% Beginning
-	title('Click on the BEGINNING of the region of interest')
-	if exist('use_pre_sync', 'var')
-		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-			x_beginning = pre_x_beginning;
-		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-			[x_beginning, y] = ginput(1);
-			x_beginning = num2ruler(x_beginning, ax.XAxis);
-		elseif strcmp(use_pre_sync, 'No')
-			[x_beginning, y] = ginput(1);
-			x_beginning = num2ruler(x_beginning, ax.XAxis);
-		end
-	else
-		[x_beginning, y] = ginput(1);
-		x_beginning = num2ruler(x_beginning, ax.XAxis);
-	end
-	line([x_beginning, x_beginning], y_lim, 'Color', 'k', ...
-	     'LineWidth', 2, 'HandleVisibility', 'off')
-	% End
-	title('Click on the END of the region of interest')
-	if exist('use_pre_sync', 'var')
-		if strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'Yes')
-			x_end = pre_x_end;
-		elseif strcmp(use_pre_sync, 'Yes') && strcmp(go_direct, 'No')
-			[x_end, y] = ginput(1);
-			x_end = num2ruler(x_end, ax.XAxis);
-		elseif strcmp(use_pre_sync, 'No')
-			[x_end, y] = ginput(1);
-			x_end = num2ruler(x_end, ax.XAxis);
-		end
-	else
-		[x_end, y] = ginput(1);
-		x_end = num2ruler(x_end, ax.XAxis);
-	end
-	line([x_end, x_end], y_lim, 'Color', 'k', 'LineWidth', 2, ...
-	     'HandleVisibility', 'off')
-
-	% Remove the peaks out of the region of interest
-	pks_keep = pks_acc_time > x_beginning & pks_acc_time < x_end;
-	pks_acc = pks_acc(pks_keep);
-	pks_acc_time = pks_acc_time(pks_keep);
-	pks_acc_idx = pks_acc_idx(pks_keep);
-
-	figure('NAME', ['Peaks in the region of interest (', filename, ...
-	       ') - Vertical vector'])
-	set(gcf, 'Position', get(0, 'Screensize'));
-	plot(acc_time, acc_data)
-	hold on
-	plot(grf_time, grf_data)
-	plot(pks_acc_time, pks_acc, 'rx', 'MarkerSize', 10)
-	line([x_beginning, x_beginning], y_lim, 'Color', 'k', 'LineWidth', 2)
-	line([x_end, x_end], y_lim, 'Color', 'k', 'LineWidth', 2)
-	legend('Acceleration', 'Ground reaction force', 'Acceleration peaks')
-	ax = gca;
-	ax.FontSize = 15;
-
-	% Find peaks in the ground reaction force signal
-	pks_grf = zeros(size(pks_acc));
-	pks_grf_idx = zeros(size(pks_acc));
-	for j = 1:length(pks_acc)
-		idx_min = pks_acc_time(j) - seconds(min_dist);
-		idx_max = pks_acc_time(j) + seconds(min_dist);
-
-		idx_min = find(grf_time == idx_min);
-		idx_max = find(grf_time == idx_max);
-
-		pks_grf(j) = max(grf_data(idx_min:idx_max));
-		pks_grf_idx(j) = find(grf_data(idx_min:idx_max) == pks_grf(j), ...
-				      1, 'first') + idx_min - 1;
-	end
-	pks_grf_time = grf_time(pks_grf_idx);
-
-	plot(pks_grf_time, pks_grf, 'gx', 'MarkerSize', 10, ...
-	     'DisplayName', 'Ground reaction force peaks')
-
-	% Get values
-	if ~isempty(regexp(filename, '\d_\d*cm', 'once'))
-		jump_type = {'drop jumps'};
-	elseif ~isempty(regexp(filename, '_Box_Jumps_', 'once'))
-		jump_type = {'box jumps'};
-	elseif ~isempty(regexp(filename, '\d_Jumps', 'once'))
-		jump_type = {'continuous jumps'};
+		extractedDataVer = extractedDataTmp;
 	end
 
-	jump_height = char(regexp(filename, '.\dcm', 'Match'));
-	jump_height = str2double(regexp(jump_height, '\d*', 'Match'));
-
-	vector = {'vertical'};
-	grf_file = grf_names(i);
-	n_peaks= length(pks_grf);
-	pACC_g_mean = mean(acc_raw_mean + pks_acc * acc_raw_stdv);
-	pACC_g_sd = std(acc_raw_mean + pks_acc * acc_raw_stdv);
-	pACC_ms2_mean = pACC_g_mean * G;
-	pACC_ms2_sd = pACC_g_sd * G;
-	pGRF_N_mean = mean(grf_raw_mean + pks_grf * grf_raw_stdv);
-	pGRF_N_sd = std(grf_raw_mean + pks_grf * grf_raw_stdv);
-	pGRF_BW_mean = pGRF_N_mean / (body_mass * G);
-	pGRF_BW_sd = pGRF_N_sd / (body_mass * G);
-
-	disp('----------------------------------------')
-	disp(' ')
-	disp(['File: ', filename])
-	disp(['Jump type: ', char(jump_type)])
-	disp(['Jump height: ', num2str(jump_height), 'cm'])
-	disp('Resultant vector')
-	disp(['Number of peaks: ', num2str(n_peaks)])
-	disp(['Average acceleration peak (m/s2): ', ...
-	     num2str(round(pACC_ms2_mean, 1))])
-	disp(['Average acceleration peak (g): ', ...
-	     num2str(round(pACC_g_mean, 1))])
-	disp(['Average ground reaction force peak (N): ', ...
-	     num2str(round(pGRF_N_mean, 1))])
-	disp(['Average ground reaction force peak (BW): ', ...
-	     num2str(round(pGRF_BW_mean, 1))])
-	disp(' ')
-
-	% Put values in a table
-	ver_data_tmp = table(ID, grf_file, acc_placement, acc_type, ...
-			     jump_type, jump_height, body_mass,vector, ...
-			     n_peaks, pACC_g_mean, pACC_g_sd, pACC_ms2_mean, ...
-			     pACC_ms2_sd, pGRF_N_mean, pGRF_N_sd, ...
-			     pGRF_BW_mean, pGRF_BW_sd);
-
-	if exist('ver_data', 'var')
-		ver_data = [ver_data; ver_data_tmp];
-	else
-		ver_data = ver_data_tmp;
+	if exist('syncDataVerTmp', 'var')
+		syncDataVerTmp = [syncDataVerTmp; syncDataTmp];
+        else
+		syncDataVerTmp = syncDataTmp;
 	end
 
-	% Get and write synchronization values
-	sync_data_tmp = table({filename}, adjusted_time, x_beginning, x_end, ...
-			      {pks_acc_time}, {pks_grf_time});
-	sync_data_tmp.Properties.VariableNames{1} = 'filename';
-	sync_data_tmp.Properties.VariableNames{5} = 'pks_acc_time';
-	sync_data_tmp.Properties.VariableNames{6} = 'pks_grf_time';
-
-	if exist('sync_data_ver_tmp', 'var')
-		sync_data_ver_tmp = [sync_data_ver_tmp; sync_data_tmp];
-	else
-		sync_data_ver_tmp = sync_data_tmp;
-	end
-
-	if exist('use_pre_sync', 'var') && strcmp(use_pre_sync, 'No')
+	if exist('usePreSync', 'var') && strcmp(usePreSync, 'No')
 		pause(5)
 	end
-	if exist('go_direct', 'var') && strcmp(go_direct, 'No')
+	if exist('goDirect', 'var') && strcmp(goDirect, 'No')
 		pause(2)
 	end
 end
 
 % Save sync data into a .mat file
-sync_data_vertical = sync_data_ver_tmp;
-if exist(sync_filename, 'file')
-	save(sync_filename, 'sync_data_vertical', '-append')
+syncDataVertical = syncDataVerTmp;
+if exist(syncFilename, 'file')
+	save(syncFilename, 'syncDataVertical', '-append')
 else
-	save(sync_filename, 'sync_data_vertical')
+	save(syncFilename, 'syncDataVertical')
 end
 
 % Concatenate data from resultant and vertical vectors
-extracted_data = [res_data; ver_data];
-data_path = [path, 'extracted_data_', acc_placement, '_', acc_type, '.csv'];
-writetable(extracted_data, data_path)
+extractedData = [extractedDataRes; extractedDataVer];
+dataPath = [path, 'extracted_data_', accPlacement, '_', accType, '.csv'];
+writetable(extractedData, dataPath)
