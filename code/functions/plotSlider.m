@@ -37,10 +37,8 @@ function adjustedTime = plotSlider(fig, plotGrf)
 		value = round(get(hObj, 'Value') - value);
 		set(hObj, 'Value', value)
 
-		xData = get(plot_grf, 'Xdata');
+		xData = get(plotGrf, 'Xdata');
 		adjust = seconds(value);
 		set(plotGrf, 'Xdata', xData + adjust)
 	end
 end
-
-
