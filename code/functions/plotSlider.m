@@ -1,5 +1,16 @@
 function adjustedTime = plotSlider(fig, plotGrf)
-	% Create slider
+% PLOTSLIDER lets the user adjust the ground reaction force signal in relation
+% to the acceleration signal through a GUI.
+%
+% Input arguments:
+% 	fig: a figure object which contains the acceleration and ground reaction
+% 	force plots.
+% 	plotGrf: a line plot of the ground reaction force signal.
+%
+% Output arguments:
+% 	ajustedTime: a datetime array with the ground reaction force data initial
+% 	timestamp after adjustment.
+
 	figPos = get(fig, 'Position');
 	figLeft = figPos(1);
 	figWidth = figPos(3);
