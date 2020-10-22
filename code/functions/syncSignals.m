@@ -6,6 +6,43 @@ function [syncData, extractedData] = syncSignals(ID, vector, grfFile,...
                                                  usePreSync, goDirect, ...
                                                  preAdjustedTime, ...
                                                  preXBeginning, preXEnd)
+% SYNCSIGNALS synchronizes the accelerometer and force plates signals.
+%
+% Input arguments:
+% 	ID: a double scalar with the subject identifier number.
+% 	vector: a character array with the vector to be used. Either 'resultant' or
+% 	vertical.
+% 	grfFile: a character array with the force platform file name.
+% 	grfSignal: a double array with the ground reaction force data.
+% 	grfTime: a datetime array with the ground reaction force timestamp.
+% 	accSignal: a double array with the acceleration data.
+% 	accTime: a datetime array with the acceleration timestamp.
+% 	sampFreqAcc: a double scalar with the accelerometer sample frequency in Hz.
+% 	bodyMass: a double scalar with the subject body mass in kg.
+% 	accPlacement: a character array with the accelerometer placement. Either
+% 	'ankle', 'back' or 'waist'.
+% 	accType: a character array with the accelerometer type. Either 'raw' or
+% 	'imu'.
+% 	usePreSync: a character array indicating whether to use a previous
+% 	synchronization data. Either 'Yes' or 'No'.
+% 	goDirect: a character array indicating whether to ask for user confirmation
+% 	during the synchronization process. Either 'Yes' or 'No'.
+% 	preAdjustedTime: a datetime array with the ground reaction force data
+% 	initial timestamp when usePreSync = 'Yes', or an empty array when
+% 	usePreSync = 'No'.
+% 	preXBeginning: a datetime array with the timestamp of the beginning of the
+% 	region of interest for data analysis when usePreSync = 'Yes', or an empty
+% 	array when usePreSync = 'No'.
+% 	preXEnd: a datetime array with the timestamp of the end of the region of
+% 	interest for data analysis when usePreSync = 'Yes', or an empty array when
+% 	usePreSync = 'No'.
+%
+% Output arguments:
+% 	syncData: a table with data from the current synchronization process. Data
+% 	from one force plate file and vector per line.
+% 	extractedData: a table with data extracted from the acceleration and ground
+% 	reaction force signals. Data from one force plate file and vector per line.
+
 if ~isempty(preAdjustedTime)
 	lag = preAdjustedTime - min(grfTime);
 	grfTime = grfTime + lag;
