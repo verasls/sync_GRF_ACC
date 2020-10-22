@@ -99,7 +99,7 @@ else
 	disp('Reading offset file')
 	offsetData = dlmread(char(join([path, offsetFile], '')));
 	[oX, oY, oZ] = deal(offsetData(:, 1), offsetData(:, 2), ...
-                        offsetData(:, 3));
+                      offsetData(:, 3));
 end
 
 fX = zeros(8000, size(grfNames, 1));
@@ -111,9 +111,9 @@ for i = 1:size(grfNames)
 	grfData = dlmread(grfFilename);
 	% Get data from plate 1 (GRF in N)
 	[X, Y, Z] = deal(grfData(:, 1), grfData(:, 2), grfData(:, 3));
-	X = removeOffset(X, oX, sampFreqGrf);
-	Y = removeOffset(Y, oY, sampFreqGrf);
-	Z = removeOffset(Z, oZ, sampFreqGrf);
+	X = removeOffset(X, oX);
+	Y = removeOffset(Y, oY);
+	Z = removeOffset(Z, oZ);
 
 	% Resample force plates data to the accelerometer sampling frequency
 	xResamp = resample(X, sampFreqAcc, sampFreqGrf);
