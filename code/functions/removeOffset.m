@@ -1,10 +1,9 @@
-function correctedSignal = removeOffset(originalSignal, offsetSignal, sampFreq)
+function correctedSignal = removeOffset(originalSignal, offsetSignal)
 % REMOVEOFFSET subtracts an offset from the signal.
 %
 % Input arguments:
 % 	originalSignal: a double array with the signal to subtract the offset from.
-% 	offsetSignal: a double array with the offset signal.
-% 	sampFreq: a double scalar with the sample frequency in Hz.
+% 	offsetSignal: a double array with the offset signal.w
 %
 % Output arguments:
 % 	correctedSignal: a double array with the offset subtracted from the
@@ -13,10 +12,6 @@ function correctedSignal = removeOffset(originalSignal, offsetSignal, sampFreq)
 	% Remove end of file
 	lastLine = getEvalEnd(offsetSignal);
 	offsetSignal = offsetSignal(1:lastLine);
-
-	% Get offset time
-	timeOffset = 0:lastLine - 1;
-	timeOffset = timeOffset / sampFreq;
 
 	% Get offset to be removed and correct original file
 	offset = mean(offsetSignal);
