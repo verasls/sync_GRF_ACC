@@ -89,10 +89,10 @@ ax = gca;
 ax.FontSize = 15;
 
 % Find peaks in the acceleration signal
-minHeight = 4;
-minDist = 3;
-[pksAcc, pksAccIdx] = find_signal_peaks(minHeight, minDist, ...
-                                        sampFreqAcc, accSignal);
+minHeight = 4 * mean(abs(accSignal));
+minDist = 3 * sampFreqAcc;
+[pksAcc, pksAccIdx] = findpeaks(accSignal, 'MINPEAKHEIGHT', minHeight, ...
+                                'MINPEAKDISTANCE', minDist);
 pksAccTime = accTime(pksAccIdx);
 
 % Plot the acceleration peaks
@@ -160,9 +160,9 @@ ax.FontSize = 15;
 pksGrf = zeros(size(pksAcc));
 pksGrfIdx = zeros(size(pksAcc));
 for i = 1:length(pksAcc)
-	idxMin = pksAccTime(i) - seconds(minDist);
+	idxMin = pksAccTime(i) - seconds(minDist / sampFreqAcc);
 	idxMin = find(grfTime == idxMin);
-	idxMax = pksAccTime(i) + seconds(minDist);
+	idxMax = pksAccTime(i) + seconds(minDist / sampFreqAcc);
 	idxMax = find(grfTime == idxMax);
 
 	pksGrf(i) = max(grfSignal(idxMin:idxMax));
