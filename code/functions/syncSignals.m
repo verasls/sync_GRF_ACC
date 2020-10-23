@@ -282,6 +282,8 @@ jumpHeight = char(regexp(char(grfFile), '.\dcm', 'Match'));
 jumpHeight = str2double(regexp(jumpHeight, '\d*', 'Match'));
 
 vector = {vector};
+
+% Compute ground reaction force and acceleration variables
 pAccGMean = mean(accRawMean + pksAcc * accRawSd);
 pAccGSd = std(accRawMean + pksAcc * accRawSd);
 pAccMs2Mean = pAccGMean * 9.81;
@@ -290,6 +292,59 @@ pGrfNMean = mean(grfRawMean + pksGrf * grfRawSd);
 pGrfNSd = std(grfRawMean + pksGrf * grfRawSd);
 pGrfBwMean = pGrfNMean / (bodyMass * 9.81);
 pGrfBwSd = pGrfNSd / (bodyMass * 9.81);
+
+% Compute loading rate and acceleration transient rate variables
+% Preallocate a matrix for the derivatives
+nRows = max((pksGrfIdx - curveStartGrf) - 1);
+nCols = nPeaks;
+dFdT = NaN(nRows, nCols);
+% Compute the derivatives
+for i = 1:nPeaks
+	for j = curveStartGrf(i)+1:pksGrfIdx(i)-1
+		dF = grfSignal(j + 1) - grfSignal(j - i);
+		dT = 2 / sampFreqAcc;
+		dFdT(j - curveStartGrf(i), i) = dF / dT;
+	end
+end
+
+pLrNsMean = mean(max(dFdT, [], 'omitnan'));
+pLrNsSd = std(max(dFdT, [], 'omitnan'));
+aLrNsMean = mean(mean(dFdT, 'omitnan'));
+aLrNsSd = std(mean(dFdT, 'omitnan'));
+pLrNsMean = grfRawMean + pLrNsMean * grfRawSd;
+pLrNsSd = grfRawMean + pLrNsSd * grfRawSd;
+aLrNsMean = grfRawMean + aLrNsMean * grfRawSd;
+aLrNsSd = grfRawMean + aLrNsSd * grfRawSd;
+pLrBwsMean = pLrNsMean / (bodyMass * 9.81);
+pLrBwsSd = pLrNsSd / (bodyMass * 9.81);
+aLrBwsMean = aLrNsMean / (bodyMass * 9.81);
+aLrBwsSd = aLrNsSd / (bodyMass * 9.81);
+
+% Preallocate a matrix for the derivatives
+nRows = max((pksAccIdx - curveStartAcc) - 1);
+nCols = nPeaks;
+dFdT = NaN(nRows, nCols);
+% Compute the derivatives
+for i = 1:nPeaks
+	for j = curveStartAcc(i)+1:pksAccIdx(i)-1
+		dF = accSignal(j + 1) - accSignal(j - i);
+		dT = 2 / sampFreqAcc;
+		dFdT(j - curveStartAcc(i), i) = dF / dT;
+	end
+end
+
+pAtrGsMean = mean(max(dFdT, [], 'omitnan'));
+pAtrGsSd = std(max(dFdT, [], 'omitnan'));
+aAtrGsMean = mean(mean(dFdT, 'omitnan'));
+aAtrGsSd = std(mean(dFdT, 'omitnan'));
+pAtrGsMean = accRawMean + pAtrGsMean * accRawSd;
+pAtrGsSd = accRawMean + pAtrGsSd * accRawSd;
+aAtrGsMean = accRawMean + aAtrGsMean * accRawSd;
+aAtrGsSd = accRawMean + aAtrGsSd * accRawSd;
+pAtrMs3Mean = pAtrGsMean * 9.81;
+pAtrMs3Sd = pAtrGsSd * 9.81;
+aAtrMs3Mean = aAtrGsMean * 9.81;
+aAtrMs3Sd = aAtrGsSd * 9.81;
 
 disp('----------------------------------------')
 disp(' ')
@@ -306,13 +361,25 @@ disp(['Average ground reaction force peak (N): ', ...
      num2str(round(pGrfNMean, 1))])
 disp(['Average ground reaction force peak (BW): ', ...
      num2str(round(pGrfBwMean, 1))])
+disp(['Average acceleration transient rate peak (m/s3): ', ...
+     num2str(round(pAtrMs3Mean, 1))])
+disp(['Average acceleration transient rate peak (g/s): ', ...
+     num2str(round(pAtrGsMean, 1))])
+disp(['Average loading rate peak (N/s): ', ...
+     num2str(round(pLrNsMean, 1))])
+disp(['Average loading rate peak (BW/s): ', ...
+     num2str(round(pLrBwsMean, 1))])
 disp(' ')
 
 % Put values in a table
 extractedData = table(ID, {grfFile}, accPlacement, accType, jumpType, ...
                       jumpHeight, bodyMass, vector, nPeaks, pAccGMean, ...
                       pAccGSd, pAccMs2Mean, pAccMs2Sd, pGrfNMean, ...
-                      pGrfNSd, pGrfBwMean, pGrfBwSd);
+                      pGrfNSd, pGrfBwMean, pGrfBwSd, pAtrGsMean, ...
+                      pAtrGsSd, pAtrMs3Mean, pAtrMs3Sd, pLrNsMean, ...
+                      pLrNsSd, pLrBwsMean, pLrBwsSd, aAtrGsMean, ...
+                      aAtrGsSd, aAtrMs3Mean, aAtrMs3Sd, aLrNsMean, ...
+                      aLrNsSd, aLrBwsMean, aLrBwsSd);
 extractedData.Properties.VariableNames{2} = 'filename';
 
 % Get and write synchronization values
