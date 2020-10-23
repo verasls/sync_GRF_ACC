@@ -411,4 +411,6 @@ extractedData = [extractedDataRes; extractedDataVer];
 dataPath = [path, 'extracted_data_', accPlacement, '_', accType, '.csv'];
 writetable(extractedData, dataPath)
 
+msg = msgbox('Done!');
+
 rmpath(functionsPath);
