@@ -129,7 +129,11 @@ ax.FontSize = 15;
 
 % Find peaks in the acceleration signal
 minHeight = 4 * mean(abs(accSignal));
-minDist = 4 * sampFreqAcc;
+if ~isempty(regexp(grfFile, '\d_Jumps', 'once'))
+	minDist = 0.2 * sampFreqAcc;
+else
+	minDist = 3.5 * sampFreqAcc;
+end
 [pksAcc, pksAccIdx] = findpeaks(accSignal, 'MINPEAKHEIGHT', minHeight, ...
                                 'MINPEAKDISTANCE', minDist);
 pksAccTime = accTime(pksAccIdx);
