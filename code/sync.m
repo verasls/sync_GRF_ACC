@@ -354,7 +354,7 @@ else
 	syncDataToUse = syncDataResultant;
 end
 
-if any(usePreSync == 'No')
+if strcmp(usePreSync, 'No')
 	preAdjustedTime = [];
 	preXBeginning = [];
 	preXEnd = [];
