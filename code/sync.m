@@ -231,7 +231,7 @@ else
 	preXEnd = [];
 end
 
-for i = 1:2%length(grfNames)
+for i = 1:length(grfNames)
 	grfFile = char(grfNames(i));
 	grfSignal = fRFilt(:, i);
 	grfTime = grfTmstp(:, i);
@@ -358,7 +358,7 @@ else
 	preXEnd = [];
 end
 
-for i = 1:2%length(grfNames)
+for i = 1:length(grfNames)
 	grfFile = char(grfNames(i));
 	grfSignal = fZFilt(:, i);
 	grfTime = grfTmstp(:, i);
