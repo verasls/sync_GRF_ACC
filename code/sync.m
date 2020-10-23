@@ -265,11 +265,6 @@ for i = 1:2%length(grfNames)
         else
 		syncDataResTmp = syncDataTmp;
 	end
-
-	% Pause to inspect results
-	if strcmp(usePreSync, 'No') || strcmp(goDirect, 'No')
-		pause(3)
-	end
 end
 
 % Save sync data into a .mat file
@@ -398,11 +393,6 @@ for i = 1:2%length(grfNames)
 		syncDataVerTmp = [syncDataVerTmp; syncDataTmp];
         else
 		syncDataVerTmp = syncDataTmp;
-	end
-
-	% Pause to inspect results
-	if strcmp(usePreSync, 'No') || strcmp(goDirect, 'No')
-		pause(3)
 	end
 end
 
