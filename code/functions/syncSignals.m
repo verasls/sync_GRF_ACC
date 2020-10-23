@@ -178,6 +178,7 @@ line([xEnd, xEnd], yLim, 'Color', 'k', 'LineWidth', 2, ...
 % Remove the peaks out of the region of interest
 pksKeep = pksAccTime > xBeginning & pksAccTime < xEnd;
 pksAcc = pksAcc(pksKeep);
+pksAccIdx = pksAccIdx(pksKeep);
 pksAccTime = pksAccTime(pksKeep);
 
 figure('NAME', ['Peaks in the region of interest (', grfFile, ...
@@ -211,6 +212,61 @@ pksGrfTime = grfTime(pksGrfIdx);
 plot(pksGrfTime, pksGrf, 'gx', 'MarkerSize', 10, ...
      'DisplayName', 'Ground reaction force peaks')
 
+% Pause to inspect results
+if strcmp(usePreSync, 'No') || strcmp(goDirect, 'No')
+	pause(3)
+end
+
+% Define starting point of each curve in the ground reaction force and
+% acceleration signals
+nPeaks = length(pksGrf);
+curveStartGrf = zeros(nPeaks, 1);
+curveStartAcc = zeros(nPeaks, 1);
+for  i = 1:nPeaks
+	for j = pksGrfIdx(i)-1:-1:2
+		df = grfSignal(j + 1) - grfSignal(j -1);
+		if df < 0
+			curveStartGrf(i) = j;
+			break
+		end
+	end
+end
+for i = 1:nPeaks
+	for j = pksAccIdx(i)-1:-1:2
+		df = accSignal(j + 1) - accSignal(j - 1);
+		if df < 0
+			curveStartAcc(i) = j;
+			break
+		end
+	end
+end
+
+figure('NAME', ['Start and end points of each curve (', grfFile, ...
+       ') - ', vector, ' vector'])
+set(gcf, 'Position', get(0, 'Screensize'));
+subplot(2, 1, 1)
+plot(grfSignal)
+hold on
+plot(curveStartGrf, grfSignal(curveStartGrf), 'gx', 'MarkerSize', 10)
+plot(pksGrfIdx, pksGrf, 'rx', 'MarkerSize', 10)
+legend('Ground reaction force', 'Curve start', 'Curve end (peak)')
+ax = gca;
+ax.FontSize = 12;
+
+subplot(2, 1, 2)
+plot(accSignal)
+hold on
+plot(curveStartAcc, accSignal(curveStartAcc), 'gx', 'MarkerSize', 10)
+plot(pksAccIdx, pksAcc, 'rx', 'MarkerSize', 10)
+legend('Acceleration', 'Curve start', 'Curve end (peak)')
+ax = gca;
+ax.FontSize = 12;
+
+% Pause to inspect results
+if strcmp(usePreSync, 'No') || strcmp(goDirect, 'No')
+	pause(3)
+end
+
 % Get values
 if ~isempty(regexp(grfFile, '\d_\d*cm', 'once'))
 	jumpType = {'drop jumps'};
@@ -224,7 +280,6 @@ jumpHeight = char(regexp(char(grfFile), '.\dcm', 'Match'));
 jumpHeight = str2double(regexp(jumpHeight, '\d*', 'Match'));
 
 vector = {vector};
-nPeaks = length(pksGrf);
 pAccGMean = mean(accRawMean + pksAcc * accRawSd);
 pAccGSd = std(accRawMean + pksAcc * accRawSd);
 pAccMs2Mean = pAccGMean * 9.81;
