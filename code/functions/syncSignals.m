@@ -76,11 +76,13 @@ accSignal = ((accSignal - accRawMean) / accRawSd);
 
 % Compute the cross correlation and adjust the signals based on the maximum
 % coefficient
-r = xcorr(accSignal, grfSignal);
-[~, d] = max(r);
-lag = d - length(accSignal);
-adjust = accTime(lag) - grfTime(1);
-grfTime = grfTime + adjust;
+if strcmp(usePreSync, 'No')
+	r = xcorr(accSignal, grfSignal);
+	[~, d] = max(r);
+	lag = d - length(accSignal);
+	adjust = accTime(lag) - grfTime(1);
+	grfTime = grfTime + adjust;
+end
 
 % Plot both signals to synchronize
 fig10 = figure('NAME', ['Plot slider (', grfFile, ') - ', vector, ' vector']);
