@@ -261,7 +261,7 @@ set(gcf, 'Position', get(0, 'Screensize'));
 subplot(2, 1, 1)
 plot(grfSignal)
 hold on
-plot(curveStartGrf, grfSignal(curveStartGrf), 'gx', 'MarkerSize', 10)
+plot(curveStartGrf + 1, grfSignal(curveStartGrf + 1), 'gx', 'MarkerSize', 10)
 plot(pksGrfIdx, pksGrf, 'rx', 'MarkerSize', 10)
 legend('Ground reaction force', 'Curve start', 'Curve end (peak)')
 ax = gca;
@@ -270,7 +270,7 @@ ax.FontSize = 12;
 subplot(2, 1, 2)
 plot(accSignal)
 hold on
-plot(curveStartAcc, accSignal(curveStartAcc), 'gx', 'MarkerSize', 10)
+plot(curveStartAcc + 1, accSignal(curveStartAcc + 1), 'gx', 'MarkerSize', 10)
 plot(pksAccIdx, pksAcc, 'rx', 'MarkerSize', 10)
 legend('Acceleration', 'Curve start', 'Curve end (peak)')
 ax = gca;
