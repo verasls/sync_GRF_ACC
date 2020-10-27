@@ -39,6 +39,9 @@ grfFiles = grfFiles(balanceIdx, :);
 % Remove hidden files
 hiddenIdx = ~startsWith(grfFiles(:, 1), '.');
 grfFiles = grfFiles(hiddenIdx, :);
+% Remove other files
+otherIdx = cellfun('isempty', regexp(grfFiles(:, 1), '_Tacel_Tplat_'));
+grfFiles = grfFiles(otherIdx, :);
 % Get last modification datetimes
 grfFiles = sortrows(grfFiles, 3);
 grfDtms = datetime(grfFiles(:, 3), 'Timezone', 'UTC', ...
