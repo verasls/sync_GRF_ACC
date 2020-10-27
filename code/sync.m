@@ -117,9 +117,11 @@ for i = 1:size(grfNames)
 	grfData = dlmread(grfFilename);
 	% Get data from plate 1 (GRF in N)
 	[X, Y, Z] = deal(grfData(:, 1), grfData(:, 2), grfData(:, 3));
-	X = removeOffset(X, oX);
-	Y = removeOffset(Y, oY);
-	Z = removeOffset(Z, oZ);
+	if exist('oX', 'var')
+		X = removeOffset(X, oX);
+		Y = removeOffset(Y, oY);
+		Z = removeOffset(Z, oZ);
+	end
 
 	% Resample force plates data to the accelerometer sampling frequency
 	xResamp = resample(X, sampFreqAcc, sampFreqGrf);
