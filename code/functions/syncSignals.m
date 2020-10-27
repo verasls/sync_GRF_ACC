@@ -92,6 +92,8 @@ xticks(accTime(1):minutes(1):accTime(end));
 hold on
 fig11 = plot(grfTime, grfSignal);
 hold off
+ylabel('Units of standard deviation', 'FontSize', 14)
+xlabel('Timestamp', 'FontSize', 14)
 title({'Adjust the plots using the buttons below', ...
       'Press "Continue" when done'})
 legend('Acceleration', 'Ground reaction force')
@@ -143,6 +145,8 @@ figure('NAME', ['Define region of interest (', char(grfFile), ') - ', ...
        vector, ' vector'])
 set(gcf, 'Position', get(0, 'Screensize'));
 plot(accTime, accSignal)
+ylabel('Units of standard deviation', 'FontSize', 14)
+xlabel('Timestamp', 'FontSize', 14)
 hold on
 plot(grfTime, grfSignal);
 legend('Acceleration', 'Ground reaction force')
@@ -194,6 +198,8 @@ plot(accTime, accSignal)
 hold on
 plot(grfTime, grfSignal)
 plot(pksAccTime, pksAcc, 'rx', 'MarkerSize', 10)
+ylabel('Units of standard deviation', 'FontSize', 14)
+xlabel('Timestamp', 'FontSize', 14)
 line([xBeginning, xBeginning], yLim, 'Color', 'k', 'LineWidth', 2)
 line([xEnd, xEnd], yLim, 'Color', 'k', 'LineWidth', 2)
 legend('Acceleration', 'Ground reaction force', 'Acceleration peaks')
@@ -255,11 +261,14 @@ for i = 1:nPeaks
 	end
 end
 
+% Plot these points
 figure('NAME', ['Start and end points of each curve (', grfFile, ...
        ') - ', vector, ' vector'])
 set(gcf, 'Position', get(0, 'Screensize'));
 subplot(2, 1, 1)
 plot(grfSignal)
+ylabel('Units of standard deviation', 'FontSize', 14)
+xlabel('Centiseconds', 'FontSize', 14)
 hold on
 plot(curveStartGrf + 1, grfSignal(curveStartGrf + 1), 'gx', 'MarkerSize', 10)
 plot(pksGrfIdx, pksGrf, 'rx', 'MarkerSize', 10)
@@ -269,6 +278,8 @@ ax.FontSize = 12;
 
 subplot(2, 1, 2)
 plot(accSignal)
+ylabel('Units of standard deviation', 'FontSize', 14)
+xlabel('Centiseconds', 'FontSize', 14)
 hold on
 plot(curveStartAcc + 1, accSignal(curveStartAcc + 1), 'gx', 'MarkerSize', 10)
 plot(pksAccIdx, pksAcc, 'rx', 'MarkerSize', 10)
