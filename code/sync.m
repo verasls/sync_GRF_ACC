@@ -33,6 +33,12 @@ grfFiles = grfFiles(offsetIdx, :);
 % Remove walking/running files
 runIdx = cellfun('isempty', regexp(grfFiles(:, 1), 'km_'));
 grfFiles = grfFiles(runIdx, :);
+% Remove static balance files
+balanceIdx = cellfun('isempty', regexp(grfFiles(:, 1), '_EE_'));
+grfFiles = grfFiles(balanceIdx, :);
+% Remove hidden files
+hiddenIdx = ~startsWith(grfFiles(:, 1), '.');
+grfFiles = grfFiles(hiddenIdx, :);
 % Get last modification datetimes
 grfFiles = sortrows(grfFiles, 3);
 grfDtms = datetime(grfFiles(:, 3), 'Timezone', 'UTC', ...
