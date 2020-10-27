@@ -49,7 +49,7 @@ fileEx = grfNames{1}; % Select a file to obtain the variables below
 ID = str2double(fileEx(end - 6:end - 4));
 trial = str2double(fileEx(end - 8:end - 8));
 bodyMassData = dlmread('../data/body_mass.txt', ',', 1, 0);
-idRow = find(bodyMassData(:, 1) == ID);
+idRow = find(bodyMassData(:, 1) == ID & bodyMassData(:, 2) == trial);
 bodyMass = round(bodyMassData(idRow, 3), 2);
 
 % Display subject info
@@ -102,10 +102,10 @@ else
                       offsetData(:, 3));
 end
 
-fX = zeros(8000, size(grfNames, 1));
-fY = zeros(8000, size(grfNames, 1));
-fZ = zeros(8000, size(grfNames, 1));
-grfTmstp = NaT(8000, size(grfNames, 1), 'TimeZone', 'UTC');
+fX = [];
+fY = [];
+fZ = [];
+grfTmstp = [];
 for i = 1:size(grfNames)
 	grfFilename = [path, char(grfNames(i))];
 	grfData = dlmread(grfFilename);
@@ -128,11 +128,11 @@ for i = 1:size(grfNames)
 	tmstp = tmstp';
 	tmstp = tmstp(1:end - 1);
 
-	% Append values to final arrays
-	fX(:, i) = xResamp;
-	fY(:, i) = yResamp;
-	fZ(:, i) = zResamp;
-	grfTmstp(:, i) = tmstp;
+	% Append values to final arraysfX = [fX, X_resamp];
+	fX = [fX, xResamp];
+	fY = [fY, yResamp];
+	fZ = [fZ, zResamp];
+	grfTmstp = [grfTmstp, tmstp];
 end
 sampFreqGrf = sampFreqAcc;
 disp(['Ground reaction force signal was resampled to: ', ...
