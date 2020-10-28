@@ -4,6 +4,7 @@ function [syncData, extractedData] = syncSignals(ID, vector, grfFile,...
                                                  sampFreqAcc, bodyMass, ...
                                                  accPlacement, accType, ...
                                                  usePreSync, goDirect, ...
+                                                 showPlots, ...
                                                  preAdjustedTime, ...
                                                  preXBeginning, preXEnd)
 % SYNCSIGNALS synchronizes the accelerometer and force plates signals.
@@ -85,27 +86,38 @@ if strcmp(usePreSync, 'No')
 end
 
 % Plot both signals to synchronize
-fig10 = figure('NAME', ['Plot slider (', grfFile, ') - ', vector, ' vector']);
-set(gcf, 'Position', get(0, 'Screensize'));
-plot(accTime, accSignal)
-xticks(accTime(1):minutes(1):accTime(end));
-hold on
-fig11 = plot(grfTime, grfSignal);
-hold off
-ylabel('Units of standard deviation', 'FontSize', 14)
-xlabel('Timestamp', 'FontSize', 14)
-title({'Adjust the plots using the buttons below', ...
-      'Press "Continue" when done'})
-legend('Acceleration', 'Ground reaction force')
-ax = gca;
-ax.FontSize = 15;
+if strcmp(showPlots, 'Yes')
+	fig10 = figure('NAME', ['Plot slider (', grfFile, ') - ', ...
+	               vector, ' vector']);
+	set(gcf, 'Position', get(0, 'Screensize'));
+	plot(accTime, accSignal)
+	xticks(accTime(1):minutes(1):accTime(end));
+	hold on
+	fig11 = plot(grfTime, grfSignal);
+	hold off
+	ylabel('Units of standard deviation', 'FontSize', 14)
+	xlabel('Timestamp', 'FontSize', 14)
+	title({'Adjust the plots using the buttons below', ...
+	      'Press "Continue" when done'})
+	legend('Acceleration', 'Ground reaction force')
+	ax = gca;
+	ax.FontSize = 15;
+end
 
 if strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'Yes')
 	adjustedTime = min(grfTime);
-else
+elseif strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'No') && ...
+	   strcmp(showPlots, 'Yes')
+	adjustedTime = plotSlider(fig10, fig11);
+elseif strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'No') && ...
+	   strcmp(showPlots, 'No')
+	adjustedTime = min(grfTime);
+elseif strcmp(usePreSync, 'No') && strcmp(showPlots, 'Yes')
 	adjustedTime = plotSlider(fig10, fig11);
 end
-lag = adjustedTime - min(grfTime);
+if exist('adjustedTime', 'var')
+	lag = adjustedTime - min(grfTime);
+end
 
 % Adjust the grf timestamp
 grfTime = grfTime + lag;
@@ -119,15 +131,18 @@ accSignal = accSignal(startIdx:endIdx);
 accTime = accTime(startIdx:endIdx);
 
 % Make a new plot with the adjusted time
-figure('NAME', ['Time-adjusted signals (', grfFile, ') - ', vector, ' vector'])
-set(gcf, 'Position', get(0, 'Screensize'));
-plot(accTime, accSignal)
-hold on
-plot(grfTime, grfSignal);
-hold off
-legend('Acceleration', 'Ground reaction force')
-ax = gca;
-ax.FontSize = 15;
+if strcmp(showPlots, 'Yes')
+	figure('NAME', ['Time-adjusted signals (', grfFile, ') - ', ...
+	       vector, ' vector'])
+	set(gcf, 'Position', get(0, 'Screensize'));
+	plot(accTime, accSignal)
+	hold on
+	plot(grfTime, grfSignal);
+	hold off
+	legend('Acceleration', 'Ground reaction force')
+	ax = gca;
+	ax.FontSize = 15;
+end
 
 % Find peaks in the acceleration signal
 minHeight = mean(accSignal) + 3 * std(accSignal);
@@ -141,49 +156,61 @@ end
 pksAccTime = accTime(pksAccIdx);
 
 % Plot the acceleration peaks
-figure('NAME', ['Define region of interest (', char(grfFile), ') - ', ...
-       vector, ' vector'])
-set(gcf, 'Position', get(0, 'Screensize'));
-plot(accTime, accSignal)
-ylabel('Units of standard deviation', 'FontSize', 14)
-xlabel('Timestamp', 'FontSize', 14)
-hold on
-plot(grfTime, grfSignal);
-legend('Acceleration', 'Ground reaction force')
-ax = gca;
-ax.FontSize = 15;
-plot(pksAccTime, pksAcc, 'rx', 'MarkerSize', 10, ...
-     'DisplayName', 'Acceleration peaks')
+if strcmp(showPlots, 'Yes')
+	figure('NAME', ['Define region of interest (', char(grfFile), ') - ', ...
+	       vector, ' vector'])
+	set(gcf, 'Position', get(0, 'Screensize'));
+	plot(accTime, accSignal)
+	ylabel('Units of standard deviation', 'FontSize', 14)
+	xlabel('Timestamp', 'FontSize', 14)
+	hold on
+	plot(grfTime, grfSignal);
+	legend('Acceleration', 'Ground reaction force')
+	ax = gca;
+	ax.FontSize = 15;
+	plot(pksAccTime, pksAcc, 'rx', 'MarkerSize', 10, ...
+	     'DisplayName', 'Acceleration peaks')
+end
 
 % Select region of interest
-yLim = get(gca, 'YLim');
-% Plot the pre-defined region of interest (if exist)
-if strcmp(usePreSync, 'Yes')
-	line([preXBeginning, preXBeginning], yLim, 'Color', 'k', ...
-	     'LineWidth', 2, 'HandleVisibility', 'off')
-	line([preXEnd, preXEnd], yLim, 'Color', 'k', ...
-	     'LineWidth', 2, 'HandleVisibility', 'off')
+if strcmp(showPlots, 'Yes')
+	yLim = get(gca, 'YLim');
+	% Plot the pre-defined region of interest (if exist)
+	if strcmp(usePreSync, 'Yes')
+		line([preXBeginning, preXBeginning], yLim, 'Color', 'k', ...
+		     'LineWidth', 2, 'HandleVisibility', 'off')
+		line([preXEnd, preXEnd], yLim, 'Color', 'k', ...
+		     'LineWidth', 2, 'HandleVisibility', 'off')
+	end
 end
 % Beginning
-title('Click on the BEGINNING of the region of interest')
-if strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'Yes')
+if strcmp(usePreSync, 'Yes') && strcmp(showPlots, 'No')
 	xBeginning = preXBeginning;
 else
-	[xBeginning, ~] = ginput(1);
-	xBeginning = num2ruler(xBeginning, ax.XAxis);
+	if strcmp(showPlots, 'Yes')
+		title('Click on the BEGINNING of the region of interest')
+		[xBeginning, ~] = ginput(1);
+		xBeginning = num2ruler(xBeginning, ax.XAxis);
+	end
 end
-line([xBeginning, xBeginning], yLim, 'Color', 'k', 'LineWidth', 2, ...
-     'HandleVisibility', 'off')
+if strcmp(showPlots, 'Yes')
+	line([xBeginning, xBeginning], yLim, 'Color', 'k', 'LineWidth', 2, ...
+	     'HandleVisibility', 'off')
+end
 % End
-title('Click on the END of the region of interest')
-if strcmp(usePreSync, 'Yes') && strcmp(goDirect, 'Yes')
+if strcmp(usePreSync, 'Yes') && strcmp(showPlots, 'No')
 	xEnd = preXEnd;
 else
-	[xEnd, ~] = ginput(1);
-	xEnd = num2ruler(xEnd, ax.XAxis);
+	if strcmp(showPlots, 'Yes')
+		title('Click on the END of the region of interest')
+		[xEnd, ~] = ginput(1);
+		xEnd = num2ruler(xEnd, ax.XAxis);
+	end
 end
-line([xEnd, xEnd], yLim, 'Color', 'k', 'LineWidth', 2, ...
-     'HandleVisibility', 'off')
+if strcmp(showPlots, 'Yes')
+	line([xEnd, xEnd], yLim, 'Color', 'k', 'LineWidth', 2, ...
+	     'HandleVisibility', 'off')
+end
 
 % Remove the peaks out of the region of interest
 pksKeep = pksAccTime > xBeginning & pksAccTime < xEnd;
@@ -191,20 +218,22 @@ pksAcc = pksAcc(pksKeep);
 pksAccIdx = pksAccIdx(pksKeep);
 pksAccTime = pksAccTime(pksKeep);
 
-figure('NAME', ['Peaks in the region of interest (', grfFile, ...
-       ') - ', vector, ' vector'])
-set(gcf, 'Position', get(0, 'Screensize'));
-plot(accTime, accSignal)
-hold on
-plot(grfTime, grfSignal)
-plot(pksAccTime, pksAcc, 'rx', 'MarkerSize', 10)
-ylabel('Units of standard deviation', 'FontSize', 14)
-xlabel('Timestamp', 'FontSize', 14)
-line([xBeginning, xBeginning], yLim, 'Color', 'k', 'LineWidth', 2)
-line([xEnd, xEnd], yLim, 'Color', 'k', 'LineWidth', 2)
-legend('Acceleration', 'Ground reaction force', 'Acceleration peaks')
-ax = gca;
-ax.FontSize = 15;
+if strcmp(showPlots, 'Yes')
+	figure('NAME', ['Peaks in the region of interest (', grfFile, ...
+	       ') - ', vector, ' vector'])
+	set(gcf, 'Position', get(0, 'Screensize'));
+	plot(accTime, accSignal)
+	hold on
+	plot(grfTime, grfSignal)
+	plot(pksAccTime, pksAcc, 'rx', 'MarkerSize', 10)
+	ylabel('Units of standard deviation', 'FontSize', 14)
+	xlabel('Timestamp', 'FontSize', 14)
+	line([xBeginning, xBeginning], yLim, 'Color', 'k', 'LineWidth', 2)
+	line([xEnd, xEnd], yLim, 'Color', 'k', 'LineWidth', 2)
+	legend('Acceleration', 'Ground reaction force', 'Acceleration peaks')
+	ax = gca;
+	ax.FontSize = 15;
+end
 
 % Find peaks in the ground reaction force signal
 pksGrf = zeros(size(pksAcc));
@@ -229,8 +258,10 @@ for i = 1:length(pksAcc)
 end
 pksGrfTime = grfTime(pksGrfIdx);
 
-plot(pksGrfTime, pksGrf, 'gx', 'MarkerSize', 10, ...
-     'DisplayName', 'Ground reaction force peaks')
+if strcmp(showPlots, 'Yes')
+	plot(pksGrfTime, pksGrf, 'gx', 'MarkerSize', 10, ...
+	     'DisplayName', 'Ground reaction force peaks')
+end
 
 % Pause to inspect results
 if strcmp(usePreSync, 'No') || strcmp(goDirect, 'No')
@@ -262,30 +293,34 @@ for i = 1:nPeaks
 end
 
 % Plot these points
-figure('NAME', ['Start and end points of each curve (', grfFile, ...
-       ') - ', vector, ' vector'])
-set(gcf, 'Position', get(0, 'Screensize'));
-subplot(2, 1, 1)
-plot(grfSignal)
-ylabel('Units of standard deviation', 'FontSize', 14)
-xlabel('Centiseconds', 'FontSize', 14)
-hold on
-plot(curveStartGrf + 1, grfSignal(curveStartGrf + 1), 'gx', 'MarkerSize', 10)
-plot(pksGrfIdx, pksGrf, 'rx', 'MarkerSize', 10)
-legend('Ground reaction force', 'Curve start', 'Curve end (peak)')
-ax = gca;
-ax.FontSize = 12;
+if strcmp(showPlots, 'Yes')
+	figure('NAME', ['Start and end points of each curve (', grfFile, ...
+	       ') - ', vector, ' vector'])
+	set(gcf, 'Position', get(0, 'Screensize'));
+	subplot(2, 1, 1)
+	plot(grfSignal)
+	ylabel('Units of standard deviation', 'FontSize', 14)
+	xlabel('Centiseconds', 'FontSize', 14)
+	hold on
+	plot(curveStartGrf + 1, grfSignal(curveStartGrf + 1), 'gx', ...
+	     'MarkerSize', 10)
+	plot(pksGrfIdx, pksGrf, 'rx', 'MarkerSize', 10)
+	legend('Ground reaction force', 'Curve start', 'Curve end (peak)')
+	ax = gca;
+	ax.FontSize = 12;
 
-subplot(2, 1, 2)
-plot(accSignal)
-ylabel('Units of standard deviation', 'FontSize', 14)
-xlabel('Centiseconds', 'FontSize', 14)
-hold on
-plot(curveStartAcc + 1, accSignal(curveStartAcc + 1), 'gx', 'MarkerSize', 10)
-plot(pksAccIdx, pksAcc, 'rx', 'MarkerSize', 10)
-legend('Acceleration', 'Curve start', 'Curve end (peak)')
-ax = gca;
-ax.FontSize = 12;
+	subplot(2, 1, 2)
+	plot(accSignal)
+	ylabel('Units of standard deviation', 'FontSize', 14)
+	xlabel('Centiseconds', 'FontSize', 14)
+	hold on
+	plot(curveStartAcc + 1, accSignal(curveStartAcc + 1), 'gx', ...
+	     'MarkerSize', 10)
+	plot(pksAccIdx, pksAcc, 'rx', 'MarkerSize', 10)
+	legend('Acceleration', 'Curve start', 'Curve end (peak)')
+	ax = gca;
+	ax.FontSize = 12;
+end
 
 % Pause to inspect results
 if strcmp(usePreSync, 'No') || strcmp(goDirect, 'No')
