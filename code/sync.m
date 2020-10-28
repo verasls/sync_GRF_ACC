@@ -175,25 +175,6 @@ fR = sqrt(fX.^2 + fY.^2 + fZ.^2);
 aRFilt = sqrt(aXFilt.^2 + aYFilt.^2 + aZFilt.^2);
 fRFilt = sqrt(fXFilt.^2 + fYFilt.^2 + fZFilt.^2);
 
-% Plot the filtered and unfiltered signals
-figure('NAME', 'Filtered and unfiltered signals')
-set(gcf, 'Position', get(0, 'Screensize'));
-subplot(2, 1, 1)
-plot(accTmstp, aR)
-hold on
-plot(accTmstp, aRFilt)
-ylabel('Resultant acceleration (g)', 'FontSize', 14)
-xlabel('Timestamp', 'FontSize', 14)
-title('Acceleration signal', 'FontSize', 18)
-subplot(2, 1, 2)
-plot(grfTmstp, fR, '-', 'color', [0.0000 0.4470 0.7419])
-hold on
-plot(grfTmstp, fRFilt, '-', 'color', [0.8500 0.3250 0.0980])
-ylabel('Resultant ground reaction force (N)', 'FontSize', 14)
-xlabel('Timestamp', 'FontSize', 14)
-title('Ground reaction force signal', 'FontSize', 18)
-suptitle('Filtered signal (orange lines) and unfiltered signal (blue lines)')
-
 % Start synchronization process for the resultant vector
 disp(' ')
 disp('----------------------------------------')
@@ -236,7 +217,9 @@ end
 
 if strcmp(usePreSync, 'Yes')
 	load([path, toLoad])
+	showPlots = questdlg('Show plots?', '', 'No', 'Yes', 'Yes');
 else
+	showPlots = 'Yes';
 	preAdjustedTime = [];
 	preXBeginning = [];
 	preXEnd = [];
@@ -260,6 +243,7 @@ for i = 1:length(grfNames)
 	                                              sampFreqAcc, bodyMass, ...
 	                                              accPlacement, accType, ...
 	                                              usePreSync, goDirect, ...
+	                                              showPlots, ...
 	                                              preAdjustedTime, ...
 	                                              preXBeginning, preXEnd);
 
@@ -357,6 +341,7 @@ end
 
 if strcmp(usePreSync, 'Yes')
 	goDirect = 'Yes';
+	showPlots = 'No';
 end
 
 if exist('syncDataVertical', 'var')
@@ -369,6 +354,7 @@ if strcmp(usePreSync, 'No')
 	preAdjustedTime = [];
 	preXBeginning = [];
 	preXEnd = [];
+	showPlots = 'Yes';
 end
 
 for i = 1:length(grfNames)
@@ -390,6 +376,7 @@ for i = 1:length(grfNames)
 	                                              sampFreqAcc, bodyMass, ...
 	                                              accPlacement, accType, ...
 	                                              usePreSync, goDirect, ...
+	                                              showPlots, ...
 	                                              preAdjustedTime, ...
 	                                              preXBeginning, preXEnd);
 
