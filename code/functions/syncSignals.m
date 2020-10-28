@@ -234,7 +234,7 @@ plot(pksGrfTime, pksGrf, 'gx', 'MarkerSize', 10, ...
 
 % Pause to inspect results
 if strcmp(usePreSync, 'No') || strcmp(goDirect, 'No')
-	pause(3)
+	pause(1)
 end
 
 % Define starting point of each curve in the ground reaction force and
@@ -289,7 +289,7 @@ ax.FontSize = 12;
 
 % Pause to inspect results
 if strcmp(usePreSync, 'No') || strcmp(goDirect, 'No')
-	pause(3)
+	pause(1)
 end
 
 % Get values
