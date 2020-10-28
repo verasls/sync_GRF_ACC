@@ -410,3 +410,8 @@ dataPath = [path, 'extracted_data_', accPlacement, '_', accType, '.csv'];
 writetable(extractedData, dataPath)
 
 rmpath(functionsPath);
+
+runAgain = questdlg('Analyse another file', '', 'No', 'Yes', 'Yes');
+if strcmp(runAgain, 'Yes')
+	run('sync.m')
+end
