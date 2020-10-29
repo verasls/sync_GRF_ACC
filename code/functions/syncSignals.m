@@ -359,54 +359,76 @@ pGrfBwSd = pGrfNSd / (bodyMass * 9.81);
 % Preallocate a matrix for the derivatives
 nRows = max((pksGrfIdx - curveStartGrf) - 1);
 nCols = nPeaks;
+if nRows > 0
 dFdT = NaN(nRows, nCols);
-% Compute the derivatives
-for i = 1:nPeaks
-	for j = curveStartGrf(i)+1:pksGrfIdx(i)-1
-		dF = grfSignal(j + 1) - grfSignal(j - i);
-		dT = 2 / sampFreqAcc;
-		dFdT(j - curveStartGrf(i), i) = dF / dT;
+	% Compute the derivatives
+	for i = 1:nPeaks
+		for j = curveStartGrf(i)+1:pksGrfIdx(i)-1
+			dF = grfSignal(j + 1) - grfSignal(j - i);
+			dT = 2 / sampFreqAcc;
+			dFdT(j - curveStartGrf(i), i) = dF / dT;
+		end
 	end
-end
 
-pLrNsMean = mean(max(dFdT, [], 'omitnan'));
-pLrNsSd = std(max(dFdT, [], 'omitnan'));
-aLrNsMean = mean(mean(dFdT, 'omitnan'));
-aLrNsSd = std(mean(dFdT, 'omitnan'));
-pLrNsMean = grfRawMean + pLrNsMean * grfRawSd;
-pLrNsSd = grfRawMean + pLrNsSd * grfRawSd;
-aLrNsMean = grfRawMean + aLrNsMean * grfRawSd;
-aLrNsSd = grfRawMean + aLrNsSd * grfRawSd;
-pLrBwsMean = pLrNsMean / (bodyMass * 9.81);
-pLrBwsSd = pLrNsSd / (bodyMass * 9.81);
-aLrBwsMean = aLrNsMean / (bodyMass * 9.81);
-aLrBwsSd = aLrNsSd / (bodyMass * 9.81);
+	pLrNsMean = mean(max(dFdT, [], 'omitnan'));
+	pLrNsSd = std(max(dFdT, [], 'omitnan'));
+	aLrNsMean = mean(mean(dFdT, 'omitnan'));
+	aLrNsSd = std(mean(dFdT, 'omitnan'));
+	pLrNsMean = grfRawMean + pLrNsMean * grfRawSd;
+	pLrNsSd = grfRawMean + pLrNsSd * grfRawSd;
+	aLrNsMean = grfRawMean + aLrNsMean * grfRawSd;
+	aLrNsSd = grfRawMean + aLrNsSd * grfRawSd;
+	pLrBwsMean = pLrNsMean / (bodyMass * 9.81);
+	pLrBwsSd = pLrNsSd / (bodyMass * 9.81);
+	aLrBwsMean = aLrNsMean / (bodyMass * 9.81);
+	aLrBwsSd = aLrNsSd / (bodyMass * 9.81);
+else
+	pLrNsMean =  NaN;
+	pLrNsSd = NaN;
+	aLrNsMean = NaN;
+	aLrNsSd = NaN;
+	pLrBwsMean = NaN;
+	pLrBwsSd = NaN;
+	aLrBwsMean = NaN;
+	aLrBwsSd = NaN;
+end
 
 % Preallocate a matrix for the derivatives
 nRows = max((pksAccIdx - curveStartAcc) - 1);
 nCols = nPeaks;
-dFdT = NaN(nRows, nCols);
-% Compute the derivatives
-for i = 1:nPeaks
-	for j = curveStartAcc(i)+1:pksAccIdx(i)-1
-		dF = accSignal(j + 1) - accSignal(j - i);
-		dT = 2 / sampFreqAcc;
-		dFdT(j - curveStartAcc(i), i) = dF / dT;
+if nRows > 0
+	dFdT = NaN(nRows, nCols);
+	% Compute the derivatives
+	for i = 1:nPeaks
+		for j = curveStartAcc(i)+1:pksAccIdx(i)-1
+			dF = accSignal(j + 1) - accSignal(j - i);
+			dT = 2 / sampFreqAcc;
+			dFdT(j - curveStartAcc(i), i) = dF / dT;
+		end
 	end
-end
 
-pAtrGsMean = mean(max(dFdT, [], 'omitnan'));
-pAtrGsSd = std(max(dFdT, [], 'omitnan'));
-aAtrGsMean = mean(mean(dFdT, 'omitnan'));
-aAtrGsSd = std(mean(dFdT, 'omitnan'));
-pAtrGsMean = accRawMean + pAtrGsMean * accRawSd;
-pAtrGsSd = accRawMean + pAtrGsSd * accRawSd;
-aAtrGsMean = accRawMean + aAtrGsMean * accRawSd;
-aAtrGsSd = accRawMean + aAtrGsSd * accRawSd;
-pAtrMs3Mean = pAtrGsMean * 9.81;
-pAtrMs3Sd = pAtrGsSd * 9.81;
-aAtrMs3Mean = aAtrGsMean * 9.81;
-aAtrMs3Sd = aAtrGsSd * 9.81;
+	pAtrGsMean = mean(max(dFdT, [], 'omitnan'));
+	pAtrGsSd = std(max(dFdT, [], 'omitnan'));
+	aAtrGsMean = mean(mean(dFdT, 'omitnan'));
+	aAtrGsSd = std(mean(dFdT, 'omitnan'));
+	pAtrGsMean = accRawMean + pAtrGsMean * accRawSd;
+	pAtrGsSd = accRawMean + pAtrGsSd * accRawSd;
+	aAtrGsMean = accRawMean + aAtrGsMean * accRawSd;
+	aAtrGsSd = accRawMean + aAtrGsSd * accRawSd;
+	pAtrMs3Mean = pAtrGsMean * 9.81;
+	pAtrMs3Sd = pAtrGsSd * 9.81;
+	aAtrMs3Mean = aAtrGsMean * 9.81;
+	aAtrMs3Sd = aAtrGsSd * 9.81;
+else
+	pAtrGsMean = NaN;
+	pAtrGsSd = NaN;
+	aAtrGsMean = NaN;
+	aAtrGsSd = NaN;
+	pAtrMs3Mean = NaN;
+	pAtrMs3Sd = NaN;
+	aAtrMs3Mean = NaN;
+	aAtrMs3Sd = NaN;
+end
 
 disp('----------------------------------------')
 disp(' ')
