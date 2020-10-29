@@ -81,7 +81,11 @@ if strcmp(usePreSync, 'No')
 	r = xcorr(accSignal, grfSignal);
 	[~, d] = max(r);
 	lag = d - length(accSignal);
-	adjust = accTime(lag) - grfTime(1);
+	if lag > 0
+		adjust = accTime(lag) - grfTime(1);
+	else
+		adjust = 0;
+	end
 	grfTime = grfTime + adjust;
 end
 
