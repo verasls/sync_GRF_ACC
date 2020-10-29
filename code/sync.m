@@ -90,8 +90,16 @@ elseif contains(file, 'IMU')
 end
 
 % Get accelerometer data start and end time indices
-accStartIdx = find(accTmstp == startTime);
-accEndIdx = find(accTmstp == endTime);
+if startTime <= min(accTmstp)
+	accStartIdx = 1;
+else
+	accStartIdx = find(accTmstp == startTime);
+end
+if endTime >= max(accTmstp)
+	accEndIdx = length(accTmstp);
+else
+	accEndIdx = find(accTmstp == endTime);
+end
 % Crop timestamp between these boundaries
 accTmstp = accTmstp(accStartIdx:accEndIdx);
 
